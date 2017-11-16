@@ -22,8 +22,8 @@ function connect() {
         stompClient.subscribe('/topic/public', function (greeting) {
             showGreeting(JSON.parse(greeting.body).content);
         });
-        stompClient.subscribe('/user/queue/status', function (message) {
-            showPersonal(JSON.parse(message.body).content);
+        stompClient.subscribe('/user/queue/messages', function (message) {
+            showPersonal(JSON.parse(message.body).message);
         });
     });
 }
@@ -37,13 +37,10 @@ function disconnect() {
 }
 
 function sendName() {
-    stompClient.send("/app/addClient", {}, JSON.stringify(
+    stompClient.send("/app/registerClient", {}, JSON.stringify(
         {
             'name': $("#name").val(),
-            'address': '127.0.0.1',
-            'version': '3',
-            'height': '13',
-            'lastHash': 'OSJDOJASOJDOSAJ'
+            'version': '3'
         }
     ));
 

@@ -1,20 +1,29 @@
 package com.prisch.client
 
+import com.prisch.util.Failure
+import com.prisch.util.Result
+import com.prisch.util.Success
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
+import java.security.Principal
 
 @Repository
 class ClientRepository {
 
-    private val clientSnapshotMap = mutableMapOf<String, ClientSnapshot>()
+    private val clientMap = mutableMapOf<Principal, Client>()
 
-    fun refreshClient(clientDetails: ClientDetails) {
-        val clientSnapshot = ClientSnapshot(clientDetails, LocalDateTime.now())
-        clientSnapshotMap.put(clientDetails.name, clientSnapshot)
+    fun registerClient(clientRegistration: ClientRegistration, principal: Principal): Result {
+        synchronized(clientMap) {
+            if (clientMap.any { it.key != principal && it.value.name == clientRegistration.name })
+                return Failure("That name is already in use by someone else.")
+
+            clientMap.put(principal, Client(clientRegistration))
+            return Success
+        }
     }
 
-    fun activeClients() = clientSnapshotMap.values.filter { it.lastRefreshTime.isAfter(cutoffTimestamp()) }
-                                                  .map { it.clientDetails }
-
-    private fun cutoffTimestamp() = LocalDateTime.now().minusSeconds(20)
+    fun deregisterClient(principal: Principal) {
+        synchronized(clientMap) {
+            clientMap.remove(principal)
+        }
+    }
 }

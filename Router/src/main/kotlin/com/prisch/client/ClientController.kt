@@ -1,5 +1,7 @@
 package com.prisch.client
 
+import com.prisch.communication.ActionResponse
+import com.prisch.communication.ResponseType
 import com.prisch.util.Failure
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
@@ -10,15 +12,17 @@ import java.security.Principal
 @Controller
 class ClientController(private val clientRepository: ClientRepository) {
 
-    @MessageMapping("/addClient")
-    @SendToUser("/queue/status")
-    fun addClient(@Payload clientDetails: ClientDetails, principal: Principal): String {
-        val validationResult = clientDetails.validate()
+    @MessageMapping("/registerClient")
+    @SendToUser("/queue/messages")
+    fun registerClient(@Payload clientRegistration: ClientRegistration, principal: Principal): ActionResponse {
+        val validationResult = clientRegistration.validate()
         if (validationResult is Failure)
-            return validationResult.message
+            return ActionResponse(ResponseType.ERROR, validationResult.message)
 
-        clientRepository.refreshClient(clientDetails)
+        val registrationResult = clientRepository.registerClient(clientRegistration, principal)
+        if (registrationResult is Failure)
+            return ActionResponse(ResponseType.ERROR, registrationResult.message)
 
-        return """{"content": "Just for you"}"""
+        return ActionResponse(ResponseType.SUCCESS, "Successfully registered your client with name '${clientRegistration.name}'")
     }
 }

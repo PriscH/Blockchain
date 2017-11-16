@@ -1,8 +1,11 @@
 package com.prisch.client
 
-import java.time.LocalDateTime
-
-data class ClientSnapshot(
-        val clientDetails: ClientDetails,
-        val lastRefreshTime: LocalDateTime
-)
+data class Client(
+        val name: String,
+        val version: Int
+) {
+    constructor(clientRegistration: ClientRegistration) : this(
+            clientRegistration.name,
+            clientRegistration.version
+    )
+}

@@ -1,20 +1,20 @@
 package com.prisch.websocket
 
+import com.prisch.client.ClientRepository
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.messaging.SessionConnectEvent
 import org.springframework.web.socket.messaging.SessionDisconnectEvent
 
 @Component
-class WebSocketEventListener {
+class WebSocketEventListener(private val clientRepository: ClientRepository) {
 
     @EventListener
     fun handleConnect(event: SessionConnectEvent) {
-        System.out.println(event)
     }
 
     @EventListener
     fun handleDisconnect(event: SessionDisconnectEvent) {
-
+        clientRepository.deregisterClient(event.user)
     }
 }
