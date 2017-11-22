@@ -11,6 +11,7 @@ class WebSocketEventListener(private val clientRepository: ClientRepository) {
 
     @EventListener
     fun handleConnect(event: SessionConnectEvent) {
+        println("!!!!!!!!!!!!!!!!! Client successfully connected !!!!!!!!!!!!!!")
     }
 
     @EventListener

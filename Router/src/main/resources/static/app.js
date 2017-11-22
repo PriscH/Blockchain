@@ -46,7 +46,7 @@ function sendName() {
 
     stompClient.send("/app/postTransaction", {}, JSON.stringify(
         {
-            'clientName': 'CoolKids',
+            'clientName': $("#name").val(),
             'clientVersion': '3',
             'content': '{"name":"James"}'
         }

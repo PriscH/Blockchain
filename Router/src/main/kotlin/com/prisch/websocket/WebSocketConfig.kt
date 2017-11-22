@@ -13,7 +13,6 @@ class WebSocketConfig : AbstractWebSocketMessageBrokerConfigurer() {
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry.addEndpoint("/ws")
                 .setHandshakeHandler(WebSocketHandshakeHandler())
-                .withSockJS()
     }
 
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
