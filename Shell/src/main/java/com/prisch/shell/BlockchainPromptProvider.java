@@ -13,6 +13,6 @@ public class BlockchainPromptProvider implements PromptProvider {
 
     @Override
     public AttributedString getPrompt() {
-        return new AttributedString("epicoin:>", AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+        return new AttributedString("\nepicoin:>", AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
     }
 }

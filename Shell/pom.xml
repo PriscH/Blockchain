@@ -8,9 +8,9 @@
     <version>SNAPSHOT-1.0</version>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.6.RELEASE</version>
+        <groupId>org.springframework.shell</groupId>
+        <artifactId>spring-shell-parent</artifactId>
+        <version>2.0.0.BUILD-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -19,6 +19,7 @@
             <artifactId>spring-shell-starter</artifactId>
             <version>2.0.0.BUILD-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-messaging</artifactId>
@@ -28,13 +29,21 @@
             <artifactId>spring-websocket</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish.tyrus.bundles</groupId>
             <artifactId>tyrus-standalone-client</artifactId>
             <version>1.13.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.immutables</groupId>
+            <artifactId>value</artifactId>
+            <version>2.5.5</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

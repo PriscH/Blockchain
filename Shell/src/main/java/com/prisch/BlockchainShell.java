@@ -24,14 +24,4 @@ public class BlockchainShell {
         stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
         return stompClient;
     }
-
-    /*
-    @Bean
-    public WebSocketConnectionManager wsConnectionManager() {
-        WebSocketClient client = new StandardWebSocketClient();
-        WebSocketHandler handler = new MessageHandler();
-        WebSocketConnectionManager manager = new WebSocketConnectionManager(client, handler, "ws://localhost:8080/ws");
-        return manager;
-    }
-    */
 }
