@@ -1,17 +1,23 @@
 package com.prisch.transactions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.value.Value;
 
-import java.math.BigDecimal;
-import java.util.Properties;
+import java.util.List;
+import java.util.Map;
 
 @Value.Immutable
+@JsonSerialize
+@JsonDeserialize
 public interface Transaction {
 
     int version();
 
-    TransactionReference input();
-    Output output();
+    List<Input> inputs();
+    List<Output> outputs();
 
     String hash();
     String signature();
@@ -19,14 +25,14 @@ public interface Transaction {
 
     // lockHeight
     // stopJaco
-    Properties properties();
+    Map<String, String> properties();
 
     @Value.Immutable
-    interface TransactionReference {
+    interface Input {
         int blockHeight();
         String transactionHash();
 
-        int outputIndex();
+        int index();
     }
 
     @Value.Immutable
@@ -34,6 +40,12 @@ public interface Transaction {
         int index();
 
         String address();
-        BigDecimal amount();
+        int amount();
+    }
+
+    default String toJson() throws JsonProcessingException {
+        return new ObjectMapper()
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(this);
     }
 }

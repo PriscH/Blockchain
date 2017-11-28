@@ -7,14 +7,12 @@ import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 @ShellComponent
 @ShellCommandGroup("Address and Keys")
@@ -47,13 +45,8 @@ public class GenerateKeyCommand {
         keyGenerator.initialize(512);
         KeyPair keyPair = keyGenerator.generateKeyPair();
 
-        writeKeyToDisk(keyPair.getPublic(), Constants.PUBLIC_KEY_PATH);
-        writeKeyToDisk(keyPair.getPrivate(), Constants.PRIVATE_KEY_PATH);
-    }
-
-    private void writeKeyToDisk(Key key, Path keyPath) throws IOException {
-        String keyContent = DatatypeConverter.printHexBinary(key.getEncoded());
-        Files.write(keyPath, keyContent.getBytes());
+        Files.write(Constants.PUBLIC_KEY_PATH, Base64.getEncoder().encode(keyPair.getPublic().getEncoded()));
+        Files.write(Constants.PRIVATE_KEY_PATH, Base64.getEncoder().encode(keyPair.getPrivate().getEncoded()));
     }
 
     private String readLine(String message) {

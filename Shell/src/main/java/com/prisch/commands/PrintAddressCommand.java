@@ -1,21 +1,25 @@
 package com.prisch.commands;
 
 import com.prisch.global.Constants;
+import com.prisch.services.KeyService;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
-import javax.xml.bind.DatatypeConverter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 @ShellComponent
 @ShellCommandGroup("Address and Keys")
 public class PrintAddressCommand {
+
+    @Autowired
+    private KeyService keyService;
 
     @ShellMethod("Print your epicoin address based on your public key.")
     public String printAddress() throws Exception {
@@ -24,24 +28,23 @@ public class PrintAddressCommand {
                                                                       .append("ERROR: ")
                                                                       .style(AttributedStyle.DEFAULT)
                                                                       .append("You need a key pair in order to retrieve the corresponding address. ")
-                                                                      .append("Use the generate-keys command to create a key pair first.")
+                                                                      .append("Use the ")
+                                                                      .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
+                                                                      .append("generate-keys ")
+                                                                      .style(AttributedStyle.DEFAULT)
+                                                                      .append("command to create a key pair first.")
                                                                       .toAnsi();
         }
 
-        String publicKey = readPublicKey();
+        String publicKey = keyService.readPublicKey();
         String publicKeyHash = hashPublicKey(publicKey);
         return generateAddress(publicKeyHash);
-    }
-
-    private String readPublicKey() throws IOException {
-        byte[] publicKeyStream = Files.readAllBytes(Constants.PUBLIC_KEY_PATH);
-        return DatatypeConverter.printHexBinary(publicKeyStream);
     }
 
     private String hashPublicKey(String publicKey) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] publicKeyHash = digest.digest(publicKey.getBytes());
-        return DatatypeConverter.printHexBinary(publicKeyHash);
+        return Base64.getEncoder().encodeToString(publicKeyHash);
     }
 
     private String generateAddress(String publicKeyHash) {
