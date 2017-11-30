@@ -1,10 +1,10 @@
 package com.prisch.communication
 
-data class ActionResponse(
+data class PlainMessage(
         val type: ResponseType,
-        val message: String
+        val content: String
 )
 
 enum class ResponseType {
-    SUCCESS, ERROR
+    INFO, WARNING, ERROR
 }

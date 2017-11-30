@@ -1,7 +1,8 @@
 package com.prisch.commands;
 
+import com.prisch.StompSessionHolder;
 import com.prisch.global.Constants;
-import com.prisch.global.Version;
+import com.prisch.global.Settings;
 import com.prisch.services.HashService;
 import com.prisch.services.KeyService;
 import com.prisch.transactions.ImmutableOutput;
@@ -34,6 +35,9 @@ public class PostTransactionCommand {
     @Autowired
     private HashService hashService;
 
+    @Autowired
+    private StompSessionHolder stompSessionHolder;
+
     @ShellMethod("Post a transaction to the blockchain")
     public String postTransaction() throws Exception {
         Optional<String> keyErrorMessage = checkKeysExist();
@@ -60,15 +64,15 @@ public class PostTransactionCommand {
 
         if (askConfirmation(address.get(), amount.get(), feeAmount.get(), lockHeight.get())) {
             Transaction transaction = buildTransaction(address.get(), amount.get(), feeAmount.get(), lockHeight.get());
-            // TODO: Post the transaction
 
             String transactionDisplay = new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN))
                                                                      .append(transaction.toJson())
                                                                      .style(AttributedStyle.DEFAULT)
                                                                      .toAnsi();
             System.out.println("\n" + transactionDisplay);
-        }
 
+            stompSessionHolder.getStompSession().send("/app/postTransaction", transaction);
+        }
         return null;
     }
 
@@ -164,10 +168,10 @@ public class PostTransactionCommand {
                                                .append("Confirm by typing 'yes' or press enter to cancel: ")
                                                .toAnsi();
 
-        String resposne = System.console().readLine(CONFIRMATION);
+        String response = System.console().readLine(CONFIRMATION);
         System.out.println();
 
-        return resposne.equalsIgnoreCase("yes");
+        return response.equalsIgnoreCase("yes");
     }
 
     private Transaction buildTransaction(String address, Integer amount, Integer feeAmount, Integer lockHeight) throws Exception {
@@ -180,7 +184,7 @@ public class PostTransactionCommand {
         String publicKey = keyService.readPublicKey();
 
         return ImmutableTransaction.builder()
-                                   .version(Version.VERSION)
+                                   .version(Settings.VERSION)
                                    .inputs(inputs)
                                    .outputs(outputs)
                                    .hash(transactionHash)

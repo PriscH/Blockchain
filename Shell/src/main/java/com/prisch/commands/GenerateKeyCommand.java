@@ -20,7 +20,7 @@ public class GenerateKeyCommand {
 
     @ShellMethod("Generate Public-Private key pair")
     public String generateKeys() throws Exception {
-        final String WARNING_MESSAGE = new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED))
+        final String WARNING_MESSAGE = new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
                                                                     .append("WARNING: ")
                                                                     .style(AttributedStyle.DEFAULT)
                                                                     .append("This will overwrite any existing key pair you might have. ")

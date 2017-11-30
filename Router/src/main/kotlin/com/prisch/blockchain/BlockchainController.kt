@@ -1,5 +1,6 @@
 package com.prisch.blockchain
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.prisch.client.ClientRepository
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -12,15 +13,14 @@ class BlockchainController(private val clientRepository: ClientRepository) {
 
     @MessageMapping("/postTransaction")
     @SendTo("/topic/transactions")
-    fun postTransaction(@RequestBody message: Message): String {
-        if (message.clientName == "xxx") throw IllegalArgumentException()
+    fun postTransaction(@RequestBody transaction: JsonNode): String {
+        println(transaction)
         return """{"content": "Everybody party now"}"""
     }
 
     @MessageMapping("/postBlock")
     @SendTo("/topic/blocks")
-    fun postBlock(@RequestBody message: Message): String {
-        if (message.clientName == "xxx") throw IllegalArgumentException()
+    fun postBlock(): String {
         return """{"content": "Everybody party now"}"""
     }
 

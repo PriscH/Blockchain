@@ -9,14 +9,14 @@ import java.security.Principal
 @Repository
 class ClientRepository {
 
-    private val clientMap = mutableMapOf<Principal, Client>()
+    private val clientMap = mutableMapOf<Principal, String>()
 
-    fun registerClient(clientRegistration: ClientRegistration, principal: Principal): Result {
+    fun registerClient(clientName: String, principal: Principal): Result {
         synchronized(clientMap) {
-            if (clientMap.any { it.key != principal && it.value.name == clientRegistration.name })
+            if (clientMap.any { it.key != principal && it.value == clientName })
                 return Failure("That name is already in use by someone else.")
 
-            clientMap.put(principal, Client(clientRegistration))
+            clientMap.put(principal, clientName)
             return Success
         }
     }

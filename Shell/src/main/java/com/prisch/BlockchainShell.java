@@ -17,7 +17,7 @@ public class BlockchainShell {
     }
 
     @Bean
-    public WebSocketStompClient webSocketStompClient() {
+    public WebSocketStompClient stompClient() {
         WebSocketClient webSocketClient = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());

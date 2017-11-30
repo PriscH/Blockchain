@@ -1,6 +1,6 @@
 package com.prisch.client
 
-import com.prisch.communication.ActionResponse
+import com.prisch.communication.PlainMessage
 import com.prisch.communication.ResponseType
 import com.prisch.util.Failure
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -14,15 +14,14 @@ class ClientController(private val clientRepository: ClientRepository) {
 
     @MessageMapping("/registerClient")
     @SendToUser("/queue/messages")
-    fun registerClient(@Payload clientRegistration: ClientRegistration, principal: Principal): ActionResponse {
-        val validationResult = clientRegistration.validate()
-        if (validationResult is Failure)
-            return ActionResponse(ResponseType.ERROR, validationResult.message)
+    fun registerClient(@Payload clientName: String, principal: Principal): PlainMessage {
+        if (clientName.length !in 3..20)
+            return PlainMessage(ResponseType.ERROR, "Your client name should be between 3 and 20 characters long.")
 
-        val registrationResult = clientRepository.registerClient(clientRegistration, principal)
+        val registrationResult = clientRepository.registerClient(clientName, principal)
         if (registrationResult is Failure)
-            return ActionResponse(ResponseType.ERROR, registrationResult.message)
+            return PlainMessage(ResponseType.ERROR, registrationResult.message)
 
-        return ActionResponse(ResponseType.SUCCESS, "Successfully registered your client with name '${clientRegistration.name}'")
+        return PlainMessage(ResponseType.INFO, "Successfully registered your client with name '$clientName'")
     }
 }
