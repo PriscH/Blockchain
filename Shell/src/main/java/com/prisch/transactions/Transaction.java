@@ -2,48 +2,142 @@ package com.prisch.transactions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.immutables.value.Value;
 
 import java.util.List;
 import java.util.Map;
 
-@Value.Immutable
-@JsonSerialize
-@JsonDeserialize
-public interface Transaction {
+public class Transaction {
 
-    int version();
+    private int version;
 
-    List<Input> inputs();
-    List<Output> outputs();
+    private List<Input> inputs;
+    private List<Output> outputs;
 
-    String hash();
-    String signature();
-    String publicKey();
+    private String hash;
+    private String signature;
+    private String publicKey;
 
-    // lockHeight
-    // stopJaco
-    Map<String, String> properties();
+    private Map<String, String> properties;
 
-    @Value.Immutable
-    interface Input {
-        int blockHeight();
-        String transactionHash();
-
-        int index();
+    public int getVersion() {
+        return version;
     }
 
-    @Value.Immutable
-    interface Output {
-        int index();
-
-        String address();
-        int amount();
+    public void setVersion(int version) {
+        this.version = version;
     }
 
-    default String toJson() throws JsonProcessingException {
+    public List<Input> getInputs() {
+        return inputs;
+    }
+
+    public void setInputs(List<Input> inputs) {
+        this.inputs = inputs;
+    }
+
+    public List<Output> getOutputs() {
+        return outputs;
+    }
+
+    public void setOutputs(List<Output> outputs) {
+        this.outputs = outputs;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
+
+    public static class Input {
+
+        private int blockHeight;
+        private String transactionHash;
+        private int index;
+
+        public int getBlockHeight() {
+            return blockHeight;
+        }
+
+        public void setBlockHeight(int blockHeight) {
+            this.blockHeight = blockHeight;
+        }
+
+        public String getTransactionHash() {
+            return transactionHash;
+        }
+
+        public void setTransactionHash(String transactionHash) {
+            this.transactionHash = transactionHash;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
+        }
+    }
+
+    public static class Output {
+
+        private int index;
+        private String address;
+        private int amount;
+
+        public int getIndex() {
+            return index;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public int getAmount() {
+            return amount;
+        }
+
+        public void setAmount(int amount) {
+            this.amount = amount;
+        }
+    }
+
+    public String toJson() throws JsonProcessingException {
         return new ObjectMapper()
                     .writerWithDefaultPrettyPrinter()
                     .writeValueAsString(this);

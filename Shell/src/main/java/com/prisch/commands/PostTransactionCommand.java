@@ -5,8 +5,6 @@ import com.prisch.global.Constants;
 import com.prisch.global.Settings;
 import com.prisch.services.HashService;
 import com.prisch.services.KeyService;
-import com.prisch.transactions.ImmutableOutput;
-import com.prisch.transactions.ImmutableTransaction;
 import com.prisch.transactions.Transaction;
 import com.prisch.util.Result;
 import org.jline.utils.AttributedStringBuilder;
@@ -18,10 +16,7 @@ import org.springframework.shell.standard.ShellMethod;
 
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @ShellComponent
 @ShellCommandGroup("Transactions")
@@ -29,20 +24,19 @@ public class PostTransactionCommand {
 
     private static final String INTEGER_REGEX = "^-?\\d+$";
 
-    @Autowired
-    private KeyService keyService;
-
-    @Autowired
-    private HashService hashService;
-
-    @Autowired
-    private StompSessionHolder stompSessionHolder;
+    @Autowired private KeyService keyService;
+    @Autowired private HashService hashService;
+    @Autowired private StompSessionHolder stompSessionHolder;
 
     @ShellMethod("Post a transaction to the blockchain")
     public String postTransaction() throws Exception {
         Optional<String> keyErrorMessage = checkKeysExist();
         if (keyErrorMessage.isPresent())
             return keyErrorMessage.get();
+
+        Optional<String> connected = checkConnected();
+        if (connected.isPresent())
+            return connected.get();
 
         Result<String> address = readAddress();
         if (!address.isSuccess())
@@ -91,6 +85,23 @@ public class PostTransactionCommand {
                                              .toAnsi();
 
             return Optional.of(ERROR);
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<String> checkConnected() {
+        if (!stompSessionHolder.isConnected()) {
+            return Optional.of(new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED))
+                    .append("ERROR: ")
+                    .style(AttributedStyle.DEFAULT)
+                    .append("You need to be connected to the epicoin network before posting a transaction. ")
+                    .append("Use the ")
+                    .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
+                    .append("connect ")
+                    .style(AttributedStyle.DEFAULT)
+                    .append("command to connect first.")
+                    .toAnsi());
         }
 
         return Optional.empty();
@@ -178,30 +189,32 @@ public class PostTransactionCommand {
         // TODO: Add inputs
         List<Transaction.Input> inputs = new LinkedList<>();
         List<Transaction.Output> outputs = buildOutputs(address, amount);
+        Map<String, String> properties = buildProperties(lockHeight);
 
         String transactionHash = hash(inputs, outputs);
         String signature = keyService.sign(transactionHash);
         String publicKey = keyService.readPublicKey();
 
-        return ImmutableTransaction.builder()
-                                   .version(Settings.VERSION)
-                                   .inputs(inputs)
-                                   .outputs(outputs)
-                                   .hash(transactionHash)
-                                   .signature(signature)
-                                   .publicKey(publicKey)
-                                   .putProperties(Constants.LOCK_HEIGHT_PROP, lockHeight.toString())
-                                   .build();
+        Transaction transaction = new Transaction();
+        transaction.setVersion(Settings.VERSION);
+        transaction.setInputs(inputs);
+        transaction.setOutputs(outputs);
+        transaction.setHash(transactionHash);
+        transaction.setSignature(signature);
+        transaction.setPublicKey(publicKey);
+        transaction.setProperties(properties);
+
+        return transaction;
     }
 
     private List<Transaction.Output> buildOutputs(String address, Integer amount) {
         List<Transaction.Output> outputs = new LinkedList<>();
 
-        Transaction.Output paymentOutput = ImmutableOutput.builder()
-                                                          .address(address)
-                                                          .amount(amount)
-                                                          .index(0)
-                                                          .build();
+        Transaction.Output paymentOutput = new Transaction.Output();
+        paymentOutput.setAddress(address);
+        paymentOutput.setAmount(amount);
+        paymentOutput.setIndex(0);
+
         outputs.add(paymentOutput);
 
         // TODO: Add change output
@@ -209,18 +222,26 @@ public class PostTransactionCommand {
         return outputs;
     }
 
+    private Map<String, String> buildProperties(int lockHeight) {
+        Map<String, String> properties = new HashMap<>();
+
+        properties.put(Constants.LOCK_HEIGHT_PROP, String.valueOf(lockHeight));
+
+        return properties;
+    }
+
     private String hash(List<Transaction.Input> inputs, List<Transaction.Output> outputs) throws NoSuchAlgorithmException {
         StringBuilder serializationBuilder = new StringBuilder();
 
-        inputs.stream().sorted(Comparator.comparingInt(Transaction.Input::index))
-                       .forEach(in -> serializationBuilder.append(in.blockHeight())
-                                                          .append(in.transactionHash())
-                                                          .append(in.index()));
+        inputs.stream().sorted(Comparator.comparingInt(Transaction.Input::getIndex))
+                       .forEach(in -> serializationBuilder.append(in.getBlockHeight())
+                                                          .append(in.getTransactionHash())
+                                                          .append(in.getIndex()));
 
-        outputs.stream().sorted(Comparator.comparingInt(Transaction.Output::index))
-                        .forEach(out -> serializationBuilder.append(out.index())
-                                                            .append(out.address())
-                                                            .append(out.amount()));
+        outputs.stream().sorted(Comparator.comparingInt(Transaction.Output::getIndex))
+                        .forEach(out -> serializationBuilder.append(out.getIndex())
+                                                            .append(out.getAddress())
+                                                            .append(out.getAmount()));
 
         String serializedTransaction = serializationBuilder.toString();
         return hashService.hash(serializedTransaction);

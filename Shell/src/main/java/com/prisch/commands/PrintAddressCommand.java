@@ -18,8 +18,7 @@ import java.util.Base64;
 @ShellCommandGroup("Address and Keys")
 public class PrintAddressCommand {
 
-    @Autowired
-    private KeyService keyService;
+    @Autowired private KeyService keyService;
 
     @ShellMethod("Print your epicoin address based on your public key.")
     public String printAddress() throws Exception {

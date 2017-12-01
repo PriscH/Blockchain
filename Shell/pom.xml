@@ -38,13 +38,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.immutables</groupId>
-            <artifactId>value</artifactId>
-            <version>2.5.5</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>

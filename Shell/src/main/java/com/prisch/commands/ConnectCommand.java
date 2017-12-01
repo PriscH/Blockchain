@@ -3,8 +3,11 @@ package com.prisch.commands;
 import com.prisch.StompSessionHolder;
 import com.prisch.global.Settings;
 import com.prisch.socket.PlainMessageHandler;
+import com.prisch.transactions.TransactionHandler;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -21,16 +24,15 @@ import java.util.concurrent.TimeUnit;
 @ShellCommandGroup("Network")
 public class ConnectCommand {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ConnectCommand.class);
+
     private static final long TIMEOUT = 5000; //ms
 
-    @Autowired
-    private WebSocketStompClient stompClient;
+    @Autowired private WebSocketStompClient stompClient;
+    @Autowired private StompSessionHolder stompSessionHolder;
 
-    @Autowired
-    private StompSessionHolder stompSessionHolder;
-
-    @Autowired
-    private PlainMessageHandler plainMessageHandler;
+    @Autowired private PlainMessageHandler plainMessageHandler;
+    @Autowired private TransactionHandler transactionHandler;
 
     @ShellMethod("Connect to the epicoin network")
     public String connect() throws Exception {
@@ -45,6 +47,8 @@ public class ConnectCommand {
 
             return "Successfully connected to the epicoin network.";
         } catch (Exception ex) {
+            LOG.error("Unable to connect to the epicoin network", ex);
+
             return new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED))
                     .append("ERROR: ")
                     .style(AttributedStyle.DEFAULT)
@@ -57,6 +61,7 @@ public class ConnectCommand {
     private class ConnectionHandler extends StompSessionHandlerAdapter {
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
             session.subscribe("/user/queue/messages", plainMessageHandler);
+            session.subscribe("/topic/transactions", transactionHandler);
 
             session.send("/app/registerClient", Settings.NAME);
         }

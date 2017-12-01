@@ -13,11 +13,8 @@ import java.lang.reflect.Type;
 @Component
 public class PlainMessageHandler extends StompSessionHandlerAdapter {
 
-    @Autowired
-    private BlockchainPromptProvider blockchainPromptProvider;
-
-    @Override
-    public Type getPayloadType(StompHeaders headers) {
+    @Autowired private BlockchainPromptProvider blockchainPromptProvider;
+    @Override public Type getPayloadType(StompHeaders headers) {
         return PlainMessage.class;
     }
 
