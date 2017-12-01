@@ -5,6 +5,7 @@ enum class TransactionField(val version: Int, val nodeName: String) {
     VERSION                (0, "version"),
     INPUTS                 (0, "inputs"),
     OUTPUTS                (0, "outputs"),
+    FEE_AMOUNT             (0, "feeAmount"),
     HASH                   (0, "hash"),
     SIGNATURE              (0, "signature"),
     PUBLIC_KEY             (0, "publicKey"),
@@ -14,9 +15,7 @@ enum class TransactionField(val version: Int, val nodeName: String) {
 
     INPUT_BLOCK_HEIGHT     (0, "blockHeight"),
     INPUT_TRANSACTION_HASH (0, "transactionHash"),
-    INPUT_INDEX            (0, "index"),
 
-    OUTPUT_INDEX           (0, "index"),
     OUTPUT_ADDRESS         (0, "address"),
     OUTPUT_AMOUNT          (0, "amount");
 }

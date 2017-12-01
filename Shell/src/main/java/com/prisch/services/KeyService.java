@@ -22,6 +22,16 @@ public class KeyService {
         return new String(Files.readAllBytes(Constants.PRIVATE_KEY_PATH));
     }
 
+    public String getAddress() throws NoSuchAlgorithmException, IOException {
+        String publicKey = readPublicKey();
+
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] publicKeyHashStream = digest.digest(publicKey.getBytes());
+        String publicKeyHash = Base64.getEncoder().encodeToString(publicKeyHashStream);
+
+        return publicKeyHash.substring(publicKeyHash.length() - Constants.ADDRESS_LENGTH);
+    }
+
     public String sign(String content) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
         String privateKeyContent = new String(Files.readAllBytes(Constants.PRIVATE_KEY_PATH));
 

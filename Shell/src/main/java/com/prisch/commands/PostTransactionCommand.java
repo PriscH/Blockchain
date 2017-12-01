@@ -213,7 +213,6 @@ public class PostTransactionCommand {
         Transaction.Output paymentOutput = new Transaction.Output();
         paymentOutput.setAddress(address);
         paymentOutput.setAmount(amount);
-        paymentOutput.setIndex(0);
 
         outputs.add(paymentOutput);
 
@@ -230,20 +229,21 @@ public class PostTransactionCommand {
         return properties;
     }
 
-    private String hash(List<Transaction.Input> inputs, List<Transaction.Output> outputs) throws NoSuchAlgorithmException {
+    private String hash(List<Transaction.Input> inputs, List<Transaction.Output> outputs) {
         StringBuilder serializationBuilder = new StringBuilder();
 
-        inputs.stream().sorted(Comparator.comparingInt(Transaction.Input::getIndex))
-                       .forEach(in -> serializationBuilder.append(in.getBlockHeight())
-                                                          .append(in.getTransactionHash())
-                                                          .append(in.getIndex()));
+        inputs.forEach(in -> serializationBuilder.append(in.getBlockHeight())
+                                                 .append(in.getTransactionHash()));
 
-        outputs.stream().sorted(Comparator.comparingInt(Transaction.Output::getIndex))
-                        .forEach(out -> serializationBuilder.append(out.getIndex())
-                                                            .append(out.getAddress())
-                                                            .append(out.getAmount()));
+        outputs.forEach(out -> serializationBuilder.append(out.getAddress())
+                                                   .append(out.getAmount()));
 
         String serializedTransaction = serializationBuilder.toString();
-        return hashService.hash(serializedTransaction);
+
+        try {
+            return hashService.hash(serializedTransaction);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

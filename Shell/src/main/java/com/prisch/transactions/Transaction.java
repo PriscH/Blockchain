@@ -13,6 +13,8 @@ public class Transaction {
     private List<Input> inputs;
     private List<Output> outputs;
 
+    private int feeAmount;
+
     private String hash;
     private String signature;
     private String publicKey;
@@ -41,6 +43,14 @@ public class Transaction {
 
     public void setOutputs(List<Output> outputs) {
         this.outputs = outputs;
+    }
+
+    public int getFeeAmount() {
+        return feeAmount;
+    }
+
+    public void setFeeAmount(int feeAmount) {
+        this.feeAmount = feeAmount;
     }
 
     public String getHash() {
@@ -79,7 +89,7 @@ public class Transaction {
 
         private int blockHeight;
         private String transactionHash;
-        private int index;
+        private int amount;
 
         public int getBlockHeight() {
             return blockHeight;
@@ -96,29 +106,12 @@ public class Transaction {
         public void setTransactionHash(String transactionHash) {
             this.transactionHash = transactionHash;
         }
-
-        public int getIndex() {
-            return index;
-        }
-
-        public void setIndex(int index) {
-            this.index = index;
-        }
     }
 
     public static class Output {
 
-        private int index;
         private String address;
         private int amount;
-
-        public int getIndex() {
-            return index;
-        }
-
-        public void setIndex(int index) {
-            this.index = index;
-        }
 
         public String getAddress() {
             return address;

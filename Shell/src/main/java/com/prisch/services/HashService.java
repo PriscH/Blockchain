@@ -11,9 +11,18 @@ import java.util.Base64;
 public class HashService {
 
     public String hash(String content) throws NoSuchAlgorithmException {
+        String fullHash = hashWithoutTrunc(content);
+        return trunc(fullHash);
+    }
+
+    public String hashWithoutTrunc(String content) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] publicKeyHash = digest.digest(content.getBytes());
-        return Base64.getEncoder().encodeToString(publicKeyHash).substring(0, Constants.HASH_LENGTH);
+        byte[] hashStream = digest.digest(content.getBytes());
+        return Base64.getEncoder().encodeToString(hashStream);
+    }
+
+    public String trunc(String fullHash) {
+        return fullHash.substring(fullHash.length() - Constants.HASH_LENGTH);
     }
 
 }

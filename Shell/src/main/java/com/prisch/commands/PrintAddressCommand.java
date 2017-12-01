@@ -10,9 +10,6 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
 import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 
 @ShellComponent
 @ShellCommandGroup("Wallet")
@@ -35,18 +32,6 @@ public class PrintAddressCommand {
                                                                       .toAnsi();
         }
 
-        String publicKey = keyService.readPublicKey();
-        String publicKeyHash = hashPublicKey(publicKey);
-        return generateAddress(publicKeyHash);
-    }
-
-    private String hashPublicKey(String publicKey) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] publicKeyHash = digest.digest(publicKey.getBytes());
-        return Base64.getEncoder().encodeToString(publicKeyHash);
-    }
-
-    private String generateAddress(String publicKeyHash) {
-        return publicKeyHash.substring(0, Constants.ADDRESS_LENGTH);
+        return keyService.getAddress();
     }
 }

@@ -12,4 +12,7 @@ public class Constants {
     public static final int ADDRESS_LENGTH = HASH_LENGTH;
 
     public static final String LOCK_HEIGHT_PROP = "LOCK_HEIGHT";
+
+    public static final int COINBASE_REWARD = 1000;
+    public static final int TRANSACTION_LIMIT = 3;
 }
