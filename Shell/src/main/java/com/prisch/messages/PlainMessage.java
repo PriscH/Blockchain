@@ -1,4 +1,4 @@
-package com.prisch.socket;
+package com.prisch.messages;
 
 public class PlainMessage {
 

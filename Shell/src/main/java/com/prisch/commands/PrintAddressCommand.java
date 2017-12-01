@@ -15,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 @ShellComponent
-@ShellCommandGroup("Address and Keys")
+@ShellCommandGroup("Wallet")
 public class PrintAddressCommand {
 
     @Autowired private KeyService keyService;

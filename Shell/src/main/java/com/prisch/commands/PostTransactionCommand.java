@@ -19,7 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 @ShellComponent
-@ShellCommandGroup("Transactions")
+@ShellCommandGroup("Blockchain")
 public class PostTransactionCommand {
 
     private static final String INTEGER_REGEX = "^-?\\d+$";

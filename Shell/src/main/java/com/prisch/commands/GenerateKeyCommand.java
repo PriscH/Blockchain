@@ -15,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 @ShellComponent
-@ShellCommandGroup("Address and Keys")
+@ShellCommandGroup("Wallet")
 public class GenerateKeyCommand {
 
     @ShellMethod("Generate Public-Private key pair")

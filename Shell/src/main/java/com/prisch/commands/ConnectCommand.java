@@ -2,7 +2,7 @@ package com.prisch.commands;
 
 import com.prisch.StompSessionHolder;
 import com.prisch.global.Settings;
-import com.prisch.socket.PlainMessageHandler;
+import com.prisch.messages.PlainMessageHandler;
 import com.prisch.transactions.TransactionHandler;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
