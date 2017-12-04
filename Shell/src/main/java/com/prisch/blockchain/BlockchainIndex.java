@@ -2,13 +2,18 @@ package com.prisch.blockchain;
 
 import com.prisch.blocks.Block;
 import com.prisch.global.Constants;
+import com.prisch.services.KeyService;
 import com.prisch.transactions.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class BlockchainIndex {
+
+    @Autowired private KeyService keyService;
 
     private Map<String, Block> blockMap = new HashMap<>();
     private Map<String, Transaction> transactionMap = new HashMap<>();
@@ -47,9 +52,37 @@ public class BlockchainIndex {
             return Optional.of(transactionMap.get(hash).toJson());
 
         if (addressBalanceMap.containsKey(hash))
-            return Optional.of(String.format("Address containing %d epicoins.", addressBalanceMap.get(hash)));
+            return Optional.of(buildAddressPrintout(hash));
 
         return Optional.empty();
+    }
+
+    public String buildAddressPrintout(String address) {
+        String balance = String.format("Address containing %d epicoins.", addressBalanceMap.get(address));
+
+        String deposits = "Deposit transactions: "
+                        + blockMap.values().stream()
+                                  .sorted(Comparator.comparingInt(Block::getHeight))
+                                  .flatMap(blk -> blk.getTransactions().stream())
+                                  .filter(tx -> tx.getOutputs().stream().anyMatch(out -> out.getAddress().equals(address)))
+                                  .map(tx -> String.format("{%s: %d epicoin(s)}", tx.getHash(),
+                                                    tx.getOutputs().stream().filter(out -> out.getAddress().equals(address))
+                                                                   .mapToInt(Transaction.Output::getAmount)
+                                                                   .sum()))
+                                  .collect(Collectors.joining(", "));
+
+        String withdrawals = "Withdrawal transactions: "
+                           + blockMap.values().stream()
+                                     .sorted(Comparator.comparingInt(Block::getHeight))
+                                     .flatMap(blk -> blk.getTransactions().stream())
+                                     .filter(tx -> tx.getInputs().stream().anyMatch(inp -> inp.getAddress().equals(address)))
+                                     .map(tx -> String.format("{%s: %d epicoin(s)}", tx.getHash(),
+                                                    tx.getInputs().stream().filter(inp -> inp.getAddress().equals(address))
+                                                                  .mapToInt(Transaction.Input::getAmount)
+                                                                  .sum()))
+                                     .collect(Collectors.joining(", "));
+
+        return balance + "\n" + deposits + "\n" + withdrawals;
     }
 
     public int getAddressBalance(String address) {
