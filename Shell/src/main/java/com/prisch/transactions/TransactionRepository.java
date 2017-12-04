@@ -40,6 +40,30 @@ public class TransactionRepository {
         messageHolder.addMessage(String.format("Synchronized the pending transactions: received %d transaction(s).", transactions.size()));
     }
 
+    public void syncUnclaimedTransactions(List<Transaction> transactions) {
+        unclaimedTransactionMap.clear();
+
+        Set<String> depositTransactionHashes
+                = transactions.stream()
+                              .filter(tx -> tx.getOutputs().stream().anyMatch(out -> out.getAddress().equals(keyService.getAddress())))
+                              .map(Transaction::getHash)
+                              .collect(Collectors.toSet());
+
+        Set<String> claimedTransactionHashes
+                = transactions.stream()
+                              .flatMap(tx -> tx.getInputs().stream())
+                              .map(Transaction.Input::getTransactionHash)
+                              .collect(Collectors.toSet());
+
+        List<Transaction> unclaimedTransactions
+                = transactions.stream()
+                              .filter(tx -> depositTransactionHashes.contains(tx.getHash()))
+                              .filter(tx -> !claimedTransactionHashes.contains(tx.getHash()))
+                              .collect(Collectors.toList());
+
+        unclaimedTransactions.forEach(tx -> unclaimedTransactionMap.put(tx.getHash(), tx));
+    }
+
     public List<Transaction> getMostProfitableTransactions(int count) {
         return pendingTransactionMap.values().stream()
                                     .sorted(Comparator.comparingInt(Transaction::getFeeAmount))

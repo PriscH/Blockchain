@@ -159,9 +159,11 @@ public class TransactionCommands {
         return response.equalsIgnoreCase("yes");
     }
 
-    private Transaction buildTransaction(String address, Integer amount, Integer feeAmount) throws Exception {
-        List<Transaction.Input> inputs = buildInputs(amount + feeAmount);
-        List<Transaction.Output> outputs = buildOutputs(address, amount);
+    private Transaction buildTransaction(String address, Integer transferAmount, Integer feeAmount) throws Exception {
+        List<Transaction.Input> inputs = buildInputs(transferAmount + feeAmount);
+        int inputAmount = inputs.stream().mapToInt(Transaction.Input::getAmount).sum();
+
+        List<Transaction.Output> outputs = buildOutputs(address, transferAmount, feeAmount, inputAmount);
         Map<String, String> properties = buildProperties();
 
         String transactionHash = hash(inputs, outputs);
@@ -207,16 +209,20 @@ public class TransactionCommands {
         return inputs;
     }
 
-    private List<Transaction.Output> buildOutputs(String address, Integer amount) {
+    private List<Transaction.Output> buildOutputs(String address, int transferAmount, int feeAmount, int inputAmount) {
         List<Transaction.Output> outputs = new LinkedList<>();
 
         Transaction.Output paymentOutput = new Transaction.Output();
         paymentOutput.setAddress(address);
-        paymentOutput.setAmount(amount);
-
+        paymentOutput.setAmount(transferAmount);
         outputs.add(paymentOutput);
 
-        // TODO: Add change output
+        if (inputAmount > (transferAmount + feeAmount)) {
+            Transaction.Output changeOutput = new Transaction.Output();
+            changeOutput.setAddress(keyService.getAddress());
+            changeOutput.setAmount(inputAmount - transferAmount - feeAmount);
+            outputs.add(changeOutput);
+        }
 
         return outputs;
     }
