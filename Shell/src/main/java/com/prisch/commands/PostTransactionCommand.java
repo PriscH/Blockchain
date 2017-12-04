@@ -10,13 +10,16 @@ import com.prisch.util.Result;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
-import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 @ShellComponent
 @ShellCommandGroup("Blockchain")
@@ -30,14 +33,6 @@ public class PostTransactionCommand {
 
     @ShellMethod("Post a transaction to the blockchain")
     public String postTransaction() throws Exception {
-        Optional<String> keyErrorMessage = checkKeysExist();
-        if (keyErrorMessage.isPresent())
-            return keyErrorMessage.get();
-
-        Optional<String> connected = checkConnected();
-        if (connected.isPresent())
-            return connected.get();
-
         Result<String> address = readAddress();
         if (!address.isSuccess())
             return address.getFailureMessage();
@@ -70,43 +65,18 @@ public class PostTransactionCommand {
         return null;
     }
 
-    private Optional<String> checkKeysExist() {
-        if (!Files.exists(Constants.PUBLIC_KEY_PATH)) {
-            final String ERROR =
-                new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED))
-                                             .append("ERROR: ")
-                                             .style(AttributedStyle.DEFAULT)
-                                             .append("You need a key pair in order to post a transaction. ")
-                                             .append("Use the ")
-                                             .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
-                                             .append("generate-keys ")
-                                             .style(AttributedStyle.DEFAULT)
-                                             .append("command to create a key pair first.")
-                                             .toAnsi();
-
-            return Optional.of(ERROR);
+    private Availability postTransactionAvailability() {
+        if (!keyService.checkKeysExist()) {
+            return Availability.unavailable("you do not have a key pair yet (use 'generate-keys' to generate them).");
         }
 
-        return Optional.empty();
-    }
-
-    private Optional<String> checkConnected() {
         if (!stompSessionHolder.isConnected()) {
-            return Optional.of(new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED))
-                    .append("ERROR: ")
-                    .style(AttributedStyle.DEFAULT)
-                    .append("You need to be connected to the epicoin network before posting a transaction. ")
-                    .append("Use the ")
-                    .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
-                    .append("connect ")
-                    .style(AttributedStyle.DEFAULT)
-                    .append("command to connect first.")
-                    .toAnsi());
+            return Availability.unavailable("your client is not connected to the epicoin network (use 'connect' to connect).");
         }
 
-        return Optional.empty();
+        return Availability.available();
     }
-
+    
     private Result<String> readAddress() {
         String address = System.console().readLine("Receiving address: ");
         System.out.println();

@@ -1,5 +1,7 @@
 package com.prisch.blocks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prisch.transactions.Transaction;
 
 import java.util.List;
@@ -73,5 +75,15 @@ public class Block {
 
     public void setProperties(Map<String, String> properties) {
         this.properties = properties;
+    }
+
+    public String toJson() {
+        try {
+            return new ObjectMapper()
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(this);
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

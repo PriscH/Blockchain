@@ -106,6 +106,14 @@ public class Transaction {
         public void setTransactionHash(String transactionHash) {
             this.transactionHash = transactionHash;
         }
+
+        public int getAmount() {
+            return amount;
+        }
+
+        public void setAmount(int amount) {
+            this.amount = amount;
+        }
     }
 
     public static class Output {
@@ -130,9 +138,13 @@ public class Transaction {
         }
     }
 
-    public String toJson() throws JsonProcessingException {
-        return new ObjectMapper()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(this);
+    public String toJson() {
+        try {
+            return new ObjectMapper()
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(this);
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

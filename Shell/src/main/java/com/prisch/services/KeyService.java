@@ -14,6 +14,10 @@ import java.util.Base64;
 @Component
 public class KeyService {
 
+    public boolean checkKeysExist() {
+        return Files.exists(Constants.PUBLIC_KEY_PATH) && Files.exists(Constants.PRIVATE_KEY_PATH);
+    }
+
     public String readPublicKey() throws IOException {
         return new String(Files.readAllBytes(Constants.PUBLIC_KEY_PATH));
     }

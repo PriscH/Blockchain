@@ -1,6 +1,7 @@
 package com.prisch.commands;
 
 import com.prisch.StompSessionHolder;
+import com.prisch.blocks.BlockHandler;
 import com.prisch.global.Settings;
 import com.prisch.messages.PlainMessageHandler;
 import com.prisch.transactions.TransactionHandler;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -33,13 +35,10 @@ public class ConnectCommand {
 
     @Autowired private PlainMessageHandler plainMessageHandler;
     @Autowired private TransactionHandler transactionHandler;
+    @Autowired private BlockHandler blockHandler;
 
     @ShellMethod("Connect to the epicoin network")
     public String connect() throws Exception {
-        if (stompSessionHolder.isConnected()) {
-            return "The client is already connected to the epicoin network.";
-        }
-
         ListenableFuture<StompSession> stompSessionFuture = stompClient.connect(Settings.HOST_URL, new ConnectionHandler());
         try {
             StompSession stompSession = stompSessionFuture.get(TIMEOUT, TimeUnit.MILLISECONDS);
@@ -58,10 +57,17 @@ public class ConnectCommand {
         }
     }
 
+    private Availability connectAvailability() {
+        return (!stompSessionHolder.isConnected())
+                ? Availability.available()
+                : Availability.unavailable("your client is already connected to the epicoin network.");
+    }
+
     private class ConnectionHandler extends StompSessionHandlerAdapter {
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
             session.subscribe("/user/queue/messages", plainMessageHandler);
             session.subscribe("/topic/transactions", transactionHandler);
+            session.subscribe("/topic/blocks", blockHandler);
 
             session.send("/app/registerClient", Settings.NAME);
         }

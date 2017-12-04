@@ -1,5 +1,6 @@
-package com.prisch.transactions;
+package com.prisch.blocks;
 
+import com.prisch.mining.MiningController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
@@ -8,18 +9,20 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Type;
 
 @Component
-public class TransactionHandler extends StompSessionHandlerAdapter {
+public class BlockHandler extends StompSessionHandlerAdapter {
 
-    @Autowired private TransactionRepository transactionRepository;
+    @Autowired private BlockRepository blockRepository;
+    @Autowired private MiningController miningController;
 
     @Override
     public Type getPayloadType(StompHeaders headers) {
-        return Transaction.class;
+        return Block.class;
     }
 
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
-        Transaction transaction = (Transaction)payload;
-        transactionRepository.addPendingTransaction(transaction);
+        Block block = (Block)payload;
+        blockRepository.addBlock(block);
+        miningController.resetMining();
     }
 }

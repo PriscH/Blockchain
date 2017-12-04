@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BlockchainProperties {
 
-    private volatile String hashCheck;
+    private volatile String hashCheck = "++++A";
 
     public String getHashCheck() {
         return hashCheck;

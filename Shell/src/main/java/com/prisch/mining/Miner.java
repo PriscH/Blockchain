@@ -1,6 +1,7 @@
 package com.prisch.mining;
 
 import com.prisch.BlockchainProperties;
+import com.prisch.StompSessionHolder;
 import com.prisch.blocks.Block;
 import com.prisch.blocks.BlockRepository;
 import com.prisch.global.Constants;
@@ -10,42 +11,58 @@ import com.prisch.services.KeyService;
 import com.prisch.transactions.Coinbase;
 import com.prisch.transactions.Transaction;
 import com.prisch.transactions.TransactionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Miner implements Runnable {
 
     private volatile boolean interrupted;
+    private volatile long nonce = 0;
 
-    private BlockRepository blockRepository;
-    private TransactionRepository transactionRepository;
-    private KeyService keyService;
-    private HashService hashService;
-    private BlockchainProperties blockchainProperties;
+    @Autowired private MiningController miningController;
+    @Autowired private BlockRepository blockRepository;
+    @Autowired private TransactionRepository transactionRepository;
+    @Autowired private KeyService keyService;
+    @Autowired private HashService hashService;
+    @Autowired private BlockchainProperties blockchainProperties;
+    @Autowired private StompSessionHolder stompSessionHolder;
 
     public void interrupt() {
         interrupted = true;
+    }
+
+    public long getNonce() {
+        return nonce;
     }
 
     @Override
     public void run() {
         Block previousBlock = blockRepository.getTopBlock();
         List<Transaction> transactions = buildTransactions();
-        Block blockInProgress = buildBlock(previousBlock, transactions);
+        Block proposedBlock = buildBlock(previousBlock, transactions);
 
-        long nonce = 0;
+        mine(previousBlock, transactions, proposedBlock);
+    }
+
+    private void mine(Block previousBlock, List<Transaction> transactions, Block proposedBlock) {
         while (!interrupted) {
             String blockHash = hash(transactions, previousBlock.getHash(), nonce);
-            if (satifiesHashCheck(blockHash)) {
-                blockInProgress.setNonce(nonce);
-                blockInProgress.setHash(hashService.trunc(blockHash));
-                interrupted = true;
 
-                // TODO: Post the block
-                // TODO: Restart mining once our block has been accepted
+            if (satifiesHashCheck(blockHash)) {
+                proposedBlock.setNonce(nonce);
+                proposedBlock.setHash(hashService.trunc(blockHash));
+
+                miningController.completeMining();
+                stompSessionHolder.getStompSession().send("/app/postBlock", proposedBlock);
             }
 
             ++nonce;
@@ -101,6 +118,9 @@ public class Miner implements Runnable {
     }
 
     private boolean satifiesHashCheck(String blockHash) {
-        return blockHash.startsWith(blockchainProperties.getHashCheck());
+        int checkLength = blockchainProperties.getHashCheck().length();
+        String blockHashStart = blockHash.substring(0, checkLength);
+
+        return (blockHashStart.compareTo(blockchainProperties.getHashCheck()) <= 0);
     }
 }

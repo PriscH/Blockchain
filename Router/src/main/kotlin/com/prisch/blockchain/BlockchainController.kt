@@ -17,13 +17,14 @@ import java.security.Principal
 @Controller
 class BlockchainController(val clientRepository: ClientRepository,
                            val transactionRepository: TransactionRepository,
+                           val blockRepository: BlockRepository,
                            val messageOperations: SimpMessageSendingOperations) {
 
     val LOG = LoggerFactory.getLogger(BlockchainController::class.java)
 
     @MessageMapping("/postTransaction")
     fun postTransaction(@RequestBody transaction: JsonNode, principal: Principal) {
-        LOG.info(principal.name + " : " + transaction.toString())
+        LOG.info("TRANSACTION = ${principal.name} : $transaction")
         val result = transactionRepository.addTransaction(transaction)
 
         if (result is Failure) {
@@ -34,9 +35,15 @@ class BlockchainController(val clientRepository: ClientRepository,
     }
 
     @MessageMapping("/postBlock")
-    @SendTo("/topic/blocks")
-    fun postBlock(): String {
-        return """{"content": "Everybody party now"}"""
+    fun postBlock(@RequestBody block: JsonNode, principal: Principal) {
+        LOG.info("BLOCK = ${principal.name} : $block")
+        val result = blockRepository.addBlock(block)
+
+        if (result is Failure) {
+            messageOperations.convertAndSendToUser(principal.name, "/queue/messages", PlainMessage(ResponseType.ERROR, result.message))
+        } else {
+            messageOperations.convertAndSend("/topic/blocks", block)
+        }
     }
 
     @MessageExceptionHandler
