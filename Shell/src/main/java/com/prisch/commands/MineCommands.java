@@ -1,6 +1,7 @@
 package com.prisch.commands;
 
 import com.prisch.StompSessionHolder;
+import com.prisch.blocks.BlockRepository;
 import com.prisch.mining.MiningController;
 import com.prisch.services.KeyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +12,11 @@ import org.springframework.shell.standard.ShellMethod;
 
 @ShellComponent
 @ShellCommandGroup("Blockchain")
-public class MineCommand {
+public class MineCommands {
 
     @Autowired private MiningController miningController;
     @Autowired private StompSessionHolder stompSessionHolder;
+    @Autowired private BlockRepository blockRepository;
     @Autowired private KeyService keyService;
 
     @ShellMethod("Start mining epicoins")
@@ -30,6 +32,10 @@ public class MineCommand {
 
         if (!stompSessionHolder.isConnected()) {
             return Availability.unavailable("your client is not connected to the epicoin network (use 'connect' to connect).");
+        }
+
+        if (blockRepository.isEmpty()) {
+            return Availability.unavailable("you have not received the blockchain yet (wait a while or try 'resync').");
         }
 
         if (!keyService.checkKeysExist()) {

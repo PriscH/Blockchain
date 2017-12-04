@@ -89,6 +89,8 @@ public class Transaction {
 
         private int blockHeight;
         private String transactionHash;
+
+        private String address;
         private int amount;
 
         public int getBlockHeight() {
@@ -105,6 +107,14 @@ public class Transaction {
 
         public void setTransactionHash(String transactionHash) {
             this.transactionHash = transactionHash;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
         }
 
         public int getAmount() {

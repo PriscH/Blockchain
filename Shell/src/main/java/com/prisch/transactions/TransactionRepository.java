@@ -17,6 +17,11 @@ public class TransactionRepository {
         pendingTransactionMap.put(transaction.getHash(), transaction);
     }
 
+    public void syncPendingTransactions(List<Transaction> transactions) {
+        pendingTransactionMap.clear();
+        transactions.forEach(this::addPendingTransaction);
+    }
+
     public List<Transaction> getMostProfitableTransactions(int count) {
         return pendingTransactionMap.values().stream()
                                     .sorted(Comparator.comparingInt(Transaction::getFeeAmount))

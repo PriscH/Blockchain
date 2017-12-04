@@ -9,7 +9,7 @@ import org.springframework.shell.standard.ShellOption;
 
 @ShellComponent
 @ShellCommandGroup("Utils")
-public class PrintMessageCommand {
+public class MessageCommands {
 
     @Autowired private MessageHolder messageHolder;
 

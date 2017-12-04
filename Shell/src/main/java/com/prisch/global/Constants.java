@@ -15,4 +15,6 @@ public class Constants {
 
     public static final int COINBASE_REWARD = 1000;
     public static final int TRANSACTION_LIMIT = 3;
+
+    public static final String COINBASE_ADDRESS = "00000000";
 }

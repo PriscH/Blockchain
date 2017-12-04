@@ -15,6 +15,7 @@ enum class TransactionField(val version: Int, val nodeName: String) {
 
     INPUT_BLOCK_HEIGHT     (0, "blockHeight"),
     INPUT_TRANSACTION_HASH (0, "transactionHash"),
+    INPUT_ADDRESS          (0, "address"),
     INPUT_AMOUNT           (0, "amount"),
 
     OUTPUT_ADDRESS         (0, "address"),

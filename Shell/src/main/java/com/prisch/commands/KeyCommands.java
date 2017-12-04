@@ -1,8 +1,10 @@
 package com.prisch.commands;
 
 import com.prisch.global.Constants;
+import com.prisch.shell.ShellLineReader;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -16,7 +18,9 @@ import java.util.Base64;
 
 @ShellComponent
 @ShellCommandGroup("Wallet")
-public class GenerateKeyCommand {
+public class KeyCommands {
+
+    @Autowired private ShellLineReader shellLineReader;
 
     @ShellMethod("Generate Public-Private key pair")
     public String generateKeys() throws Exception {
@@ -32,7 +36,7 @@ public class GenerateKeyCommand {
                                                                     .append("Confirm by typing 'yes' or press enter to cancel: ")
                                                                     .toAnsi();
 
-        String confirmation = readLine(WARNING_MESSAGE);
+        String confirmation = shellLineReader.readLine(WARNING_MESSAGE);
         if (confirmation.equalsIgnoreCase("yes")) {
             writeKeys();
             return "Successfully generated a key pair. You have a new address.";
@@ -47,12 +51,5 @@ public class GenerateKeyCommand {
 
         Files.write(Constants.PUBLIC_KEY_PATH, Base64.getEncoder().encode(keyPair.getPublic().getEncoded()));
         Files.write(Constants.PRIVATE_KEY_PATH, Base64.getEncoder().encode(keyPair.getPrivate().getEncoded()));
-    }
-
-    private String readLine(String message) {
-        String response = System.console().readLine(message);
-        System.out.println();
-        System.out.println();
-        return response;
     }
 }

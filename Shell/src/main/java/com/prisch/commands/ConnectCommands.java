@@ -2,9 +2,11 @@ package com.prisch.commands;
 
 import com.prisch.StompSessionHolder;
 import com.prisch.blocks.BlockHandler;
+import com.prisch.blocks.BlockSyncHandler;
 import com.prisch.global.Settings;
 import com.prisch.messages.PlainMessageHandler;
 import com.prisch.transactions.TransactionHandler;
+import com.prisch.transactions.TransactionSyncHandler;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.slf4j.Logger;
@@ -24,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 
 @ShellComponent
 @ShellCommandGroup("Network")
-public class ConnectCommand {
+public class ConnectCommands {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConnectCommand.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConnectCommands.class);
 
     private static final long TIMEOUT = 5000; //ms
 
@@ -34,8 +36,10 @@ public class ConnectCommand {
     @Autowired private StompSessionHolder stompSessionHolder;
 
     @Autowired private PlainMessageHandler plainMessageHandler;
-    @Autowired private TransactionHandler transactionHandler;
     @Autowired private BlockHandler blockHandler;
+    @Autowired private TransactionHandler transactionHandler;
+    @Autowired private BlockSyncHandler blockSyncHandler;
+    @Autowired private TransactionSyncHandler transactionSyncHandler;
 
     @ShellMethod("Connect to the epicoin network")
     public String connect() throws Exception {
@@ -66,8 +70,12 @@ public class ConnectCommand {
     private class ConnectionHandler extends StompSessionHandlerAdapter {
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
             session.subscribe("/user/queue/messages", plainMessageHandler);
-            session.subscribe("/topic/transactions", transactionHandler);
+
             session.subscribe("/topic/blocks", blockHandler);
+            session.subscribe("/topic/transactions", transactionHandler);
+
+            session.subscribe("/user/queue/blocks", blockSyncHandler);
+            session.subscribe("/user/queue/transactions", transactionSyncHandler);
 
             session.send("/app/registerClient", Settings.NAME);
         }

@@ -12,20 +12,14 @@ public class MessageHolder {
     private final List<String> unreadMessages = new LinkedList<>();
     private List<String> readMessages = new LinkedList<>();
 
-    private final Object lock = new Object();
-
-    public void addMessage(String message) {
-        synchronized (lock) {
+    public synchronized void addMessage(String message) {
             unreadMessages.add(message);
-        }
     }
 
-    public void printUnreadMessages() {
-        synchronized (lock) {
-            printMessages(unreadMessages);
-            readMessages.addAll(unreadMessages);
-            unreadMessages.clear();
-        }
+    public synchronized void printUnreadMessages() {
+        printMessages(unreadMessages);
+        readMessages.addAll(unreadMessages);
+        unreadMessages.clear();
     }
 
     public void printAllMessages() {
@@ -33,9 +27,7 @@ public class MessageHolder {
     }
 
     public int getUnreadMessageCount() {
-        synchronized (lock) {
-            return unreadMessages.size();
-        }
+        return unreadMessages.size();
     }
 
     private void printMessages(List<String> messages) {

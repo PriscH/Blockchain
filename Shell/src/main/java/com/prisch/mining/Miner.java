@@ -1,6 +1,6 @@
 package com.prisch.mining;
 
-import com.prisch.BlockchainProperties;
+import com.prisch.blockchain.BlockchainProperties;
 import com.prisch.StompSessionHolder;
 import com.prisch.blocks.Block;
 import com.prisch.blocks.BlockRepository;

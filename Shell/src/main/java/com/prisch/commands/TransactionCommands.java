@@ -7,9 +7,11 @@ import com.prisch.services.HashService;
 import com.prisch.services.KeyService;
 import com.prisch.transactions.Transaction;
 import com.prisch.util.Result;
+import org.jline.reader.LineReader;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
@@ -23,13 +25,15 @@ import java.util.Map;
 
 @ShellComponent
 @ShellCommandGroup("Blockchain")
-public class PostTransactionCommand {
+public class TransactionCommands {
 
     private static final String INTEGER_REGEX = "^-?\\d+$";
 
     @Autowired private KeyService keyService;
     @Autowired private HashService hashService;
     @Autowired private StompSessionHolder stompSessionHolder;
+
+    @Autowired private ApplicationContext applicationContext;
 
     @ShellMethod("Post a transaction to the blockchain")
     public String postTransaction() throws Exception {
@@ -76,9 +80,9 @@ public class PostTransactionCommand {
 
         return Availability.available();
     }
-    
+
     private Result<String> readAddress() {
-        String address = System.console().readLine("Receiving address: ");
+        String address = applicationContext.getBean(LineReader.class).readLine("Receiving address: ");
         System.out.println();
 
         if (address.length() != Constants.ADDRESS_LENGTH) {
@@ -88,7 +92,7 @@ public class PostTransactionCommand {
     }
 
     private Result<Integer> readAmount() {
-        String amount = System.console().readLine("Amount: ");
+        String amount = applicationContext.getBean(LineReader.class).readLine("Amount: ");
         System.out.println();
 
         if (!amount.matches(INTEGER_REGEX)) {
@@ -101,7 +105,7 @@ public class PostTransactionCommand {
     }
 
     private Result<Integer> readFeeAmount() {
-        String feeAmount = System.console().readLine("Fee Amount: ");
+        String feeAmount = applicationContext.getBean(LineReader.class).readLine("Fee Amount: ");
         System.out.println();
 
         if (!feeAmount.matches(INTEGER_REGEX)) {
@@ -114,7 +118,7 @@ public class PostTransactionCommand {
     }
 
     private Result<Integer> readLockHeight() {
-        String lockHeight = System.console().readLine("Lock height (current block height is xxx): ");
+        String lockHeight = applicationContext.getBean(LineReader.class).readLine("Lock height (current block height is xxx): ");
         System.out.println();
 
         if (!lockHeight.matches(INTEGER_REGEX)) {
@@ -149,7 +153,7 @@ public class PostTransactionCommand {
                                                .append("Confirm by typing 'yes' or press enter to cancel: ")
                                                .toAnsi();
 
-        String response = System.console().readLine(CONFIRMATION);
+        String response = applicationContext.getBean(LineReader.class).readLine(CONFIRMATION);
         System.out.println();
 
         return response.equalsIgnoreCase("yes");

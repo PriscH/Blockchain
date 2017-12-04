@@ -46,6 +46,14 @@ class BlockchainController(val clientRepository: ClientRepository,
         }
     }
 
+    @MessageMapping("/sync")
+    fun synchronize(principal: Principal) {
+        LOG.info("SYNC = ${principal.name}")
+
+        messageOperations.convertAndSendToUser(principal.name, "/queue/blocks", blockRepository.getBlocks())
+        messageOperations.convertAndSendToUser(principal.name, "/queue/transactions", transactionRepository.getTransactions())
+    }
+
     @MessageExceptionHandler
     @SendTo("/topic/public")
     fun handleException(exception: Exception): String {

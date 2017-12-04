@@ -1,5 +1,7 @@
 package com.prisch.blocks;
 
+import com.prisch.blockchain.BlockchainIndex;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.LinkedList;
@@ -8,24 +10,26 @@ import java.util.List;
 @Repository
 public class BlockRepository {
 
+    @Autowired private BlockchainIndex blockchainIndex;
+
     private final List<Block> blockchain = new LinkedList<>();
 
-    public void addBlock(Block block) {
-        synchronized (blockchain) {
-            blockchain.add(block);
-        }
+    public synchronized void addBlock(Block block) {
+        blockchain.add(block);
+        blockchainIndex.add(block);
     }
 
-    public Block getTopBlock() {
-        synchronized (blockchain) {
-            Block block = new Block();
+    public synchronized void syncBlocks(List<Block> blocks) {
+        blockchain.clear();
+        blockchain.addAll(blocks);
+        blockchainIndex.sync(blocks);
+    }
 
-            // TODO: Pretty much everything
+    public synchronized Block getTopBlock() {
+        return blockchain.get(0);
+    }
 
-            block.setHeight(1);
-            block.setHash("12345678");
-
-            return block;
-        }
+    public boolean isEmpty() {
+        return blockchainIndex.isEmpty();
     }
 }

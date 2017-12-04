@@ -10,20 +10,23 @@ class TransactionRepository {
 
     private val pendingTransactionMap = mutableMapOf<String, JsonNode>()
 
+    @Synchronized
     fun addTransaction(transaction: JsonNode): Result {
         // TODO: Add validations
 
-        synchronized(pendingTransactionMap) {
-            val hash = transaction.get(TransactionField.HASH.nodeName).asText()
-            pendingTransactionMap.put(hash, transaction)
+        val hash = transaction.get(TransactionField.HASH.nodeName).asText()
+        pendingTransactionMap.put(hash, transaction)
 
-            return Success
-        }
+        return Success
     }
 
+    @Synchronized
     fun removeTransaction(transactionHash: String) {
-        synchronized(pendingTransactionMap) {
-            pendingTransactionMap.remove(transactionHash)
-        }
+        pendingTransactionMap.remove(transactionHash)
+    }
+
+    @Synchronized
+    fun getTransactions(): List<JsonNode> {
+        return pendingTransactionMap.values.toList()
     }
 }

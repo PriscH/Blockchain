@@ -1,4 +1,4 @@
-package com.prisch;
+package com.prisch.blockchain;
 
 import org.springframework.stereotype.Component;
 
