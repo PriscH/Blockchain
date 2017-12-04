@@ -17,8 +17,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,11 +90,7 @@ public class Miner implements Runnable {
 
         Transaction.Output output = new Transaction.Output();
         output.setAmount(transactionFees + Constants.COINBASE_REWARD);
-        try {
-            output.setAddress(keyService.getAddress());
-        } catch (NoSuchAlgorithmException | IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        output.setAddress(keyService.getAddress());
 
         Coinbase coinbase = new Coinbase(Settings.VERSION, proposedHeight, output, hashService);
         transactions.add(0, coinbase);

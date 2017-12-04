@@ -87,19 +87,9 @@ public class Transaction {
 
     public static class Input {
 
-        private int blockHeight;
         private String transactionHash;
-
         private String address;
         private int amount;
-
-        public int getBlockHeight() {
-            return blockHeight;
-        }
-
-        public void setBlockHeight(int blockHeight) {
-            this.blockHeight = blockHeight;
-        }
 
         public String getTransactionHash() {
             return transactionHash;

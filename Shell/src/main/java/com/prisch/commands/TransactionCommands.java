@@ -1,12 +1,14 @@
 package com.prisch.commands;
 
 import com.prisch.StompSessionHolder;
+import com.prisch.blockchain.BlockchainIndex;
 import com.prisch.global.Constants;
 import com.prisch.global.Settings;
 import com.prisch.services.HashService;
 import com.prisch.services.KeyService;
 import com.prisch.shell.ShellLineReader;
 import com.prisch.transactions.Transaction;
+import com.prisch.transactions.TransactionRepository;
 import com.prisch.util.Result;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
@@ -16,10 +18,7 @@ import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @ShellComponent
 @ShellCommandGroup("Blockchain")
@@ -31,6 +30,8 @@ public class TransactionCommands {
     @Autowired private HashService hashService;
     @Autowired private StompSessionHolder stompSessionHolder;
     @Autowired private ShellLineReader shellLineReader;
+    @Autowired private BlockchainIndex blockchainIndex;
+    @Autowired private TransactionRepository transactionRepository;
 
     @ShellMethod("Post a transaction to the blockchain")
     public String postTransaction() throws Exception {
@@ -45,6 +46,11 @@ public class TransactionCommands {
         Result<Integer> feeAmount = readFeeAmount();
         if (!feeAmount.isSuccess())
             return feeAmount.getFailureMessage();
+
+        Optional<String> sufficientBalanceError = checkForSufficientBalance(amount.get(), feeAmount.get());
+        if (sufficientBalanceError.isPresent()) {
+            return sufficientBalanceError.get();
+        }
 
         System.out.println();
 
@@ -90,8 +96,6 @@ public class TransactionCommands {
             return Result.failure("The amount provided isn't a valid positive integer.");
         }
 
-        // TODO: Check if we have enough money
-
         return Result.success(Integer.valueOf(amount));
     }
 
@@ -102,9 +106,33 @@ public class TransactionCommands {
             return Result.failure("The fee amount provided isn't a valid positive integer.");
         }
 
-        // TODO: Check if we have enough money
-
         return Result.success(Integer.valueOf(feeAmount));
+    }
+
+    private Optional<String> checkForSufficientBalance(int transferAmount, int feeAmount) {
+        int balance = blockchainIndex.getAddressBalance(keyService.getAddress());
+        int transactionAmount = transferAmount + feeAmount;
+
+        if (balance < transactionAmount) {
+            final String INSUFFICIENT_BALANCE
+                    = new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED))
+                                                   .append("INSUFFICIENT BALANCE: ")
+                                                   .style(AttributedStyle.DEFAULT)
+                                                   .append("You do not have enough epicoin to complete the transaction. ")
+                                                   .append("You have ")
+                                                   .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
+                                                   .append(String.valueOf(balance))
+                                                   .style(AttributedStyle.DEFAULT)
+                                                   .append(" epicoins and the total of the transfer and fee amounts is ")
+                                                   .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
+                                                   .append(String.valueOf(transactionAmount))
+                                                   .style(AttributedStyle.DEFAULT)
+                                                   .append(" epicoins.")
+                                                   .toAnsi();
+
+            return Optional.of(INSUFFICIENT_BALANCE);
+        }
+        return Optional.empty();
     }
 
     private boolean askConfirmation(String address, Integer amount, Integer feeAmount) {
@@ -132,8 +160,7 @@ public class TransactionCommands {
     }
 
     private Transaction buildTransaction(String address, Integer amount, Integer feeAmount) throws Exception {
-        // TODO: Add inputs
-        List<Transaction.Input> inputs = new LinkedList<>();
+        List<Transaction.Input> inputs = buildInputs(amount + feeAmount);
         List<Transaction.Output> outputs = buildOutputs(address, amount);
         Map<String, String> properties = buildProperties();
 
@@ -152,6 +179,32 @@ public class TransactionCommands {
         transaction.setProperties(properties);
 
         return transaction;
+    }
+
+    private List<Transaction.Input> buildInputs(int totalAmount) {
+        Collection<Transaction> unclaimedTransactions = transactionRepository.getUnclaimedTransactions();
+
+        List<Transaction.Input> inputs = new LinkedList<>();
+
+        Iterator<Transaction> transactionIterator = unclaimedTransactions.iterator();
+        int amountRemaining = totalAmount;
+
+        while (amountRemaining > 0) {
+            Transaction transaction = transactionIterator.next();
+            int transactionAmount = transaction.getOutputs().stream().filter(out -> out.getAddress().equals(keyService.getAddress()))
+                                                            .mapToInt(Transaction.Output::getAmount)
+                                                            .sum();
+
+            Transaction.Input input = new Transaction.Input();
+            input.setTransactionHash(transaction.getHash());
+            input.setAddress(keyService.getAddress());
+            input.setAmount(transactionAmount);
+            inputs.add(input);
+
+            amountRemaining -= transactionAmount;
+        }
+
+        return inputs;
     }
 
     private List<Transaction.Output> buildOutputs(String address, Integer amount) {
@@ -176,8 +229,7 @@ public class TransactionCommands {
     private String hash(List<Transaction.Input> inputs, List<Transaction.Output> outputs) {
         StringBuilder serializationBuilder = new StringBuilder();
 
-        inputs.forEach(in -> serializationBuilder.append(in.getBlockHeight())
-                                                 .append(in.getTransactionHash()));
+        inputs.forEach(in -> serializationBuilder.append(in.getTransactionHash()));
 
         outputs.forEach(out -> serializationBuilder.append(out.getAddress())
                                                    .append(out.getAmount()));

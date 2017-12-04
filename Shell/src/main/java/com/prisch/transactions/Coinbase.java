@@ -10,7 +10,6 @@ public class Coinbase extends Transaction {
 
     public Coinbase(int version, int proposedHeight, Output output, HashService hashService) {
         Input generationInput = new Input();
-        generationInput.setBlockHeight(proposedHeight);
         generationInput.setTransactionHash(Constants.COINBASE_ADDRESS);
         generationInput.setAddress(Constants.COINBASE_ADDRESS);
         generationInput.setAmount(Constants.COINBASE_REWARD);

@@ -14,30 +14,48 @@ import java.util.Base64;
 @Component
 public class KeyService {
 
+    private String address;
+
     public boolean checkKeysExist() {
         return Files.exists(Constants.PUBLIC_KEY_PATH) && Files.exists(Constants.PRIVATE_KEY_PATH);
     }
 
-    public String readPublicKey() throws IOException {
-        return new String(Files.readAllBytes(Constants.PUBLIC_KEY_PATH));
+    public String readPublicKey(){
+        try {
+            return new String(Files.readAllBytes(Constants.PUBLIC_KEY_PATH));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
-    public String readPrivateKey() throws IOException {
-        return new String(Files.readAllBytes(Constants.PRIVATE_KEY_PATH));
+    public String readPrivateKey() {
+        try {
+            return new String(Files.readAllBytes(Constants.PRIVATE_KEY_PATH));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
-    public String getAddress() throws NoSuchAlgorithmException, IOException {
-        String publicKey = readPublicKey();
+    public String getAddress() {
+        if (address == null) {
+            String publicKey = readPublicKey();
 
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] publicKeyHashStream = digest.digest(publicKey.getBytes());
-        String publicKeyHash = Base64.getEncoder().encodeToString(publicKeyHashStream);
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] publicKeyHashStream = digest.digest(publicKey.getBytes());
+                String publicKeyHash = Base64.getEncoder().encodeToString(publicKeyHashStream);
 
-        return publicKeyHash.substring(publicKeyHash.length() - Constants.ADDRESS_LENGTH);
+                address = publicKeyHash.substring(publicKeyHash.length() - Constants.ADDRESS_LENGTH);
+            } catch (NoSuchAlgorithmException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+        return address;
     }
 
     public String sign(String content) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
-        String privateKeyContent = new String(Files.readAllBytes(Constants.PRIVATE_KEY_PATH));
+        String privateKeyContent = readPrivateKey();
 
         KeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyContent));
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");

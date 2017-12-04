@@ -1,6 +1,7 @@
 package com.prisch.transactions;
 
 import com.prisch.messages.MessageHolder;
+import com.prisch.services.KeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -12,16 +13,24 @@ import java.util.stream.Collectors;
 public class TransactionRepository {
 
     @Autowired private MessageHolder messageHolder;
+    @Autowired private KeyService keyService;
 
     private final Map<String, Transaction> pendingTransactionMap = new ConcurrentHashMap<>();
-    private final Map<String, Transaction> unclaimedClientTransactionMap = new ConcurrentHashMap<>();
+    private final Map<String, Transaction> unclaimedTransactionMap = new ConcurrentHashMap<>();
 
     public void addPendingTransaction(Transaction transaction) {
         pendingTransactionMap.put(transaction.getHash(), transaction);
     }
 
-    public void removePendingTransactions(List<Transaction> transactions) {
-        transactions.forEach(tx -> pendingTransactionMap.remove(tx.getHash()));
+    public void acceptTransactions(List<Transaction> transactions) {
+        for (Transaction transaction : transactions) {
+            pendingTransactionMap.remove(transaction.getHash());
+            transaction.getInputs().forEach(inp -> unclaimedTransactionMap.remove(inp.getTransactionHash()));
+
+            if (transaction.getOutputs().stream().anyMatch(out -> out.getAddress().equals(keyService.getAddress()))) {
+                unclaimedTransactionMap.put(transaction.getHash(), transaction);
+            }
+        }
     }
 
     public void syncPendingTransactions(List<Transaction> transactions) {
@@ -47,5 +56,9 @@ public class TransactionRepository {
 
     public Collection<Transaction> getTransactions() {
         return pendingTransactionMap.values();
+    }
+
+    public Collection<Transaction> getUnclaimedTransactions() {
+        return unclaimedTransactionMap.values();
     }
 }

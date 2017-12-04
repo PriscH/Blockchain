@@ -22,7 +22,7 @@ public class BlockRepository {
         blockchain.add(block);
         blockchainIndex.add(block);
 
-        transactionRepository.removePendingTransactions(block.getTransactions());
+        transactionRepository.acceptTransactions(block.getTransactions());
     }
 
     public synchronized void syncBlocks(List<Block> blocks) {
