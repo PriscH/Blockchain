@@ -1,5 +1,6 @@
 package com.prisch.blocks;
 
+import com.prisch.messages.MessageHolder;
 import com.prisch.mining.MiningController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -13,6 +14,7 @@ public class BlockHandler extends StompSessionHandlerAdapter {
 
     @Autowired private BlockRepository blockRepository;
     @Autowired private MiningController miningController;
+    @Autowired private MessageHolder messageHolder;
 
     @Override
     public Type getPayloadType(StompHeaders headers) {
@@ -22,7 +24,10 @@ public class BlockHandler extends StompSessionHandlerAdapter {
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
         Block block = (Block)payload;
+
         blockRepository.addBlock(block);
+        messageHolder.addMessage(String.format("Received a new block (%s)", block.getHash()));
+
         miningController.resetMining();
     }
 }

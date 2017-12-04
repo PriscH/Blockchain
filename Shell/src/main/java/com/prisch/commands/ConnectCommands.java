@@ -78,6 +78,7 @@ public class ConnectCommands {
             session.subscribe("/user/queue/transactions", transactionSyncHandler);
 
             session.send("/app/registerClient", Settings.NAME);
+            stompSessionHolder.getStompSession().send("/app/sync", "sync");
         }
     }
 }

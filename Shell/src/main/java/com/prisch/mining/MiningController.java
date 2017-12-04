@@ -42,7 +42,7 @@ public class MiningController {
             return "The miner has completed or was interrupted.";
         }
 
-        return String.format("The last nonce checked is %d.", miner.getNonce());
+        return String.format("The last nonce checked is %d (previous block: %s).", miner.getNonce(), miner.getPreviousBlockHash());
     }
 
     public void completeMining() {

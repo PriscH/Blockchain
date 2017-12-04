@@ -5,13 +5,12 @@ import com.prisch.global.Constants;
 import com.prisch.global.Settings;
 import com.prisch.services.HashService;
 import com.prisch.services.KeyService;
+import com.prisch.shell.ShellLineReader;
 import com.prisch.transactions.Transaction;
 import com.prisch.util.Result;
-import org.jline.reader.LineReader;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
@@ -32,8 +31,7 @@ public class TransactionCommands {
     @Autowired private KeyService keyService;
     @Autowired private HashService hashService;
     @Autowired private StompSessionHolder stompSessionHolder;
-
-    @Autowired private ApplicationContext applicationContext;
+    @Autowired private ShellLineReader shellLineReader;
 
     @ShellMethod("Post a transaction to the blockchain")
     public String postTransaction() throws Exception {
@@ -49,14 +47,10 @@ public class TransactionCommands {
         if (!feeAmount.isSuccess())
             return feeAmount.getFailureMessage();
 
-        Result<Integer> lockHeight = readLockHeight();
-        if (!lockHeight.isSuccess())
-            return lockHeight.getFailureMessage();
-
         System.out.println();
 
-        if (askConfirmation(address.get(), amount.get(), feeAmount.get(), lockHeight.get())) {
-            Transaction transaction = buildTransaction(address.get(), amount.get(), feeAmount.get(), lockHeight.get());
+        if (askConfirmation(address.get(), amount.get(), feeAmount.get())) {
+            Transaction transaction = buildTransaction(address.get(), amount.get(), feeAmount.get());
 
             String transactionDisplay = new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN))
                                                                      .append(transaction.toJson())
@@ -82,8 +76,7 @@ public class TransactionCommands {
     }
 
     private Result<String> readAddress() {
-        String address = applicationContext.getBean(LineReader.class).readLine("Receiving address: ");
-        System.out.println();
+        String address = shellLineReader.readLine("Receiving address: ");
 
         if (address.length() != Constants.ADDRESS_LENGTH) {
             return Result.failure("The provided address is invalid: it should contain %d characters.", Constants.ADDRESS_LENGTH);
@@ -92,8 +85,7 @@ public class TransactionCommands {
     }
 
     private Result<Integer> readAmount() {
-        String amount = applicationContext.getBean(LineReader.class).readLine("Amount: ");
-        System.out.println();
+        String amount = shellLineReader.readLine("Amount: ");
 
         if (!amount.matches(INTEGER_REGEX)) {
             return Result.failure("The amount provided isn't a valid positive integer.");
@@ -105,8 +97,7 @@ public class TransactionCommands {
     }
 
     private Result<Integer> readFeeAmount() {
-        String feeAmount = applicationContext.getBean(LineReader.class).readLine("Fee Amount: ");
-        System.out.println();
+        String feeAmount = shellLineReader.readLine("Fee Amount: ");
 
         if (!feeAmount.matches(INTEGER_REGEX)) {
             return Result.failure("The fee amount provided isn't a valid positive integer.");
@@ -117,20 +108,7 @@ public class TransactionCommands {
         return Result.success(Integer.valueOf(feeAmount));
     }
 
-    private Result<Integer> readLockHeight() {
-        String lockHeight = applicationContext.getBean(LineReader.class).readLine("Lock height (current block height is xxx): ");
-        System.out.println();
-
-        if (!lockHeight.matches(INTEGER_REGEX)) {
-            return Result.failure("The lock height isn't a valid positive integer.");
-        }
-
-        // TODO: Check if the lock height > current block height
-
-        return Result.success(Integer.valueOf(lockHeight));
-    }
-
-    private boolean askConfirmation(String address, Integer amount, Integer feeAmount, Integer lockHeight) {
+    private boolean askConfirmation(String address, Integer amount, Integer feeAmount) {
         final String CONFIRMATION
                 = new AttributedStringBuilder().append("Please confirm the following: ")
                                                .append("You want to transfer ")
@@ -145,25 +123,20 @@ public class TransactionCommands {
                                                .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
                                                .append(feeAmount.toString())
                                                .style(AttributedStyle.DEFAULT)
-                                               .append(" epicoins in fees as long as the transaction is processed before block ")
-                                               .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
-                                               .append(lockHeight.toString())
-                                               .style(AttributedStyle.DEFAULT)
-                                               .append("\n")
+                                               .append(" epicoins in fees.\n")
                                                .append("Confirm by typing 'yes' or press enter to cancel: ")
                                                .toAnsi();
 
-        String response = applicationContext.getBean(LineReader.class).readLine(CONFIRMATION);
-        System.out.println();
+        String response = shellLineReader.readLine(CONFIRMATION);
 
         return response.equalsIgnoreCase("yes");
     }
 
-    private Transaction buildTransaction(String address, Integer amount, Integer feeAmount, Integer lockHeight) throws Exception {
+    private Transaction buildTransaction(String address, Integer amount, Integer feeAmount) throws Exception {
         // TODO: Add inputs
         List<Transaction.Input> inputs = new LinkedList<>();
         List<Transaction.Output> outputs = buildOutputs(address, amount);
-        Map<String, String> properties = buildProperties(lockHeight);
+        Map<String, String> properties = buildProperties();
 
         String transactionHash = hash(inputs, outputs);
         String signature = keyService.sign(transactionHash);
@@ -173,6 +146,7 @@ public class TransactionCommands {
         transaction.setVersion(Settings.VERSION);
         transaction.setInputs(inputs);
         transaction.setOutputs(outputs);
+        transaction.setFeeAmount(feeAmount);
         transaction.setHash(transactionHash);
         transaction.setSignature(signature);
         transaction.setPublicKey(publicKey);
@@ -195,10 +169,8 @@ public class TransactionCommands {
         return outputs;
     }
 
-    private Map<String, String> buildProperties(int lockHeight) {
+    private Map<String, String> buildProperties() {
         Map<String, String> properties = new HashMap<>();
-
-        properties.put(Constants.LOCK_HEIGHT_PROP, String.valueOf(lockHeight));
 
         return properties;
     }

@@ -26,4 +26,8 @@ class ClientRepository {
             clientMap.remove(principal)
         }
     }
+
+    fun getClientName(principal: Principal): String {
+        return clientMap[principal] ?: "Unknown"
+    }
 }

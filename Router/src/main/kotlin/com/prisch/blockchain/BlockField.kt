@@ -8,5 +8,6 @@ enum class BlockField(val version: Int, val nodeName: String) {
     NONCE                  (0, "nonce"),
     PREVIOUS_HASH          (0, "previousHash"),
     HASH                   (0, "hash"),
-    PROPERTIES             (0, "properties");
+    PROPERTIES             (0, "properties"),
+    STOP_JACO              (0, "STOP_JACO");
 }

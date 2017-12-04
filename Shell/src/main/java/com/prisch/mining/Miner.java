@@ -6,6 +6,7 @@ import com.prisch.blocks.Block;
 import com.prisch.blocks.BlockRepository;
 import com.prisch.global.Constants;
 import com.prisch.global.Settings;
+import com.prisch.messages.MessageHolder;
 import com.prisch.services.HashService;
 import com.prisch.services.KeyService;
 import com.prisch.transactions.Coinbase;
@@ -26,7 +27,10 @@ import java.util.List;
 public class Miner implements Runnable {
 
     private volatile boolean interrupted;
+    private volatile boolean foundBlock;
+
     private volatile long nonce = 0;
+    private volatile String previousBlockHash;
 
     @Autowired private MiningController miningController;
     @Autowired private BlockRepository blockRepository;
@@ -35,6 +39,7 @@ public class Miner implements Runnable {
     @Autowired private HashService hashService;
     @Autowired private BlockchainProperties blockchainProperties;
     @Autowired private StompSessionHolder stompSessionHolder;
+    @Autowired private MessageHolder messageHolder;
 
     public void interrupt() {
         interrupted = true;
@@ -44,9 +49,15 @@ public class Miner implements Runnable {
         return nonce;
     }
 
+    public String getPreviousBlockHash() {
+        return previousBlockHash;
+    }
+
     @Override
     public void run() {
-        Block previousBlock = blockRepository.getTopBlock();
+        Block previousBlock = blockRepository.getLastBlock();
+        previousBlockHash = previousBlock.getHash();
+
         List<Transaction> transactions = buildTransactions();
         Block proposedBlock = buildBlock(previousBlock, transactions);
 
@@ -61,11 +72,16 @@ public class Miner implements Runnable {
                 proposedBlock.setNonce(nonce);
                 proposedBlock.setHash(hashService.trunc(blockHash));
 
+                foundBlock = true;
                 miningController.completeMining();
                 stompSessionHolder.getStompSession().send("/app/postBlock", proposedBlock);
             }
 
             ++nonce;
+        }
+
+        if (!foundBlock) {
+            messageHolder.addMessage(String.format("Mining was interrupted before a new block could found (previous block hash: %s)", previousBlockHash));
         }
     }
 

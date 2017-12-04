@@ -10,7 +10,6 @@ enum class TransactionField(val version: Int, val nodeName: String) {
     SIGNATURE              (0, "signature"),
     PUBLIC_KEY             (0, "publicKey"),
     PROPERTIES             (0, "properties"),
-    LOCK_HEIGHT            (0, "LOCK_HEIGHT"),
     STOP_JACO              (0, "STOP_JACO"),
 
     INPUT_BLOCK_HEIGHT     (0, "blockHeight"),
