@@ -84,7 +84,7 @@ public class WalletCommands {
     public String printBlocks() {
         List<Block> blocks = blockRepository.getBlocks();
 
-        return blocks.stream().map(blk -> String.format("Height: %d, Hash: %s, Transactions:[%s]",
+        return blocks.stream().map(blk -> String.format("Height: %d, Hash: %s, Transactions: [%s]",
                                                         blk.getHeight(),
                                                         blk.getHash(),
                                                         blk.getTransactions().stream().map(Transaction::getHash).collect(Collectors.joining(", "))))
@@ -95,7 +95,7 @@ public class WalletCommands {
     public String printPendingTransactions() {
         Collection<Transaction> transactions = transactionRepository.getTransactions();
 
-        return transactions.stream().map(tx -> String.format("Hash: %s, Output Address:[%s]",
+        return transactions.stream().map(tx -> String.format("Hash: %s, Output Addresses: [%s]",
                                                              tx.getHash(),
                                                              tx.getOutputs().stream().map(Transaction.Output::getAddress).collect(Collectors.joining(", "))))
                                     .collect(Collectors.joining("\n"));

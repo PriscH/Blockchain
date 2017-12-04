@@ -14,6 +14,7 @@ public class TransactionRepository {
     @Autowired private MessageHolder messageHolder;
 
     private final Map<String, Transaction> pendingTransactionMap = new ConcurrentHashMap<>();
+    private final Map<String, Transaction> unclaimedClientTransactionMap = new ConcurrentHashMap<>();
 
     public void addPendingTransaction(Transaction transaction) {
         pendingTransactionMap.put(transaction.getHash(), transaction);

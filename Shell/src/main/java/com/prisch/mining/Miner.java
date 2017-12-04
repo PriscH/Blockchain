@@ -1,7 +1,7 @@
 package com.prisch.mining;
 
-import com.prisch.blockchain.BlockchainProperties;
 import com.prisch.StompSessionHolder;
+import com.prisch.blockchain.BlockchainProperties;
 import com.prisch.blocks.Block;
 import com.prisch.blocks.BlockRepository;
 import com.prisch.global.Constants;
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -58,7 +59,7 @@ public class Miner implements Runnable {
         Block previousBlock = blockRepository.getLastBlock();
         previousBlockHash = previousBlock.getHash();
 
-        List<Transaction> transactions = buildTransactions();
+        List<Transaction> transactions = buildTransactions(previousBlock.getHeight() + 1);
         Block proposedBlock = buildBlock(previousBlock, transactions);
 
         mine(previousBlock, transactions, proposedBlock);
@@ -85,7 +86,7 @@ public class Miner implements Runnable {
         }
     }
 
-    private List<Transaction> buildTransactions() {
+    private List<Transaction> buildTransactions(int proposedHeight) {
         List<Transaction> transactions = transactionRepository.getMostProfitableTransactions(Constants.TRANSACTION_LIMIT - 1); // Consider the Coinbase Transaction
         int transactionFees = transactions.stream().mapToInt(Transaction::getFeeAmount).sum();
 
@@ -97,8 +98,8 @@ public class Miner implements Runnable {
             throw new RuntimeException(ex);
         }
 
-        Coinbase coinbase = new Coinbase(Settings.VERSION, output);
-        transactions.add(coinbase);
+        Coinbase coinbase = new Coinbase(Settings.VERSION, proposedHeight, output, hashService);
+        transactions.add(0, coinbase);
 
         return transactions;
     }
@@ -112,9 +113,14 @@ public class Miner implements Runnable {
         block.setTransactions(transactions);
 
         block.setPreviousHash(previousBlock.getHash());
-        block.setProperties(new HashMap<>());
+        block.setProperties(buildProperties());
 
         return block;
+    }
+
+    private Map<String, String> buildProperties() {
+        Map<String, String> properties = new HashMap<>();
+        return properties;
     }
 
     private String hash(List<Transaction> transactions, String previousHash, long nonce) {
@@ -125,12 +131,7 @@ public class Miner implements Runnable {
         serializationBuilder.append(nonce);
 
         String serializedTransaction = serializationBuilder.toString();
-
-        try {
-            return hashService.hashWithoutTrunc(serializedTransaction);
-        } catch (NoSuchAlgorithmException ex) {
-            throw new RuntimeException(ex);
-        }
+        return hashService.hashWithoutTrunc(serializedTransaction);
     }
 
     private boolean satifiesHashCheck(String blockHash) {

@@ -16,7 +16,6 @@ import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -171,7 +170,6 @@ public class TransactionCommands {
 
     private Map<String, String> buildProperties() {
         Map<String, String> properties = new HashMap<>();
-
         return properties;
     }
 
@@ -185,11 +183,6 @@ public class TransactionCommands {
                                                    .append(out.getAmount()));
 
         String serializedTransaction = serializationBuilder.toString();
-
-        try {
-            return hashService.hash(serializedTransaction);
-        } catch (NoSuchAlgorithmException ex) {
-            throw new RuntimeException(ex);
-        }
+        return hashService.hash(serializedTransaction);
     }
 }
