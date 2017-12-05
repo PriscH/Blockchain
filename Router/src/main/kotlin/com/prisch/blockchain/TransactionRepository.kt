@@ -19,6 +19,10 @@ class TransactionRepository(
         if (validationResult is Failure)
             return validationResult
 
+        val inputsPendingResult = checkInputsPending(transaction)
+        if (inputsPendingResult is Failure)
+            return inputsPendingResult
+
         val hash = transaction.get(TransactionField.HASH.nodeName).asText()
         pendingTransactionMap.put(hash, transaction)
 
@@ -38,6 +42,31 @@ class TransactionRepository(
     @Synchronized
     fun getTransaction(transactionHash: String): JsonNode? {
         return pendingTransactionMap[transactionHash]
+    }
+
+    private fun checkInputsPending(transaction: JsonNode): Result {
+        val inputs = transaction.get(TransactionField.INPUTS.nodeName)
+        val transactionAddress = inputs.first().get(TransactionField.INPUT_ADDRESS.nodeName).asText()
+
+        val claimedTransactions = getTransactions().flatMap { tx ->
+            tx.get(TransactionField.INPUTS.nodeName)
+              .filter { it.get(TransactionField.INPUT_ADDRESS.nodeName).asText() == transactionAddress }
+              .map { it.get(TransactionField.INPUT_TRANSACTION_HASH.nodeName).asText() }
+        }.toSet()
+
+        val clashingInput = inputs.find { claimedTransactions.contains(it.get(TransactionField.INPUT_TRANSACTION_HASH.nodeName).asText()) }
+        if (clashingInput != null) {
+            val clashingTransaction = clashingInput.get(TransactionField.INPUT_TRANSACTION_HASH.nodeName).asText()
+            val otherTransaction = getTransactions().find { tx ->
+                tx.get(TransactionField.INPUTS.nodeName)
+                  .any { inp -> inp.get(TransactionField.INPUT_TRANSACTION_HASH.nodeName).asText() == clashingTransaction}
+            } ?.get(TransactionField.HASH.nodeName)?.asText()
+
+            if (otherTransaction != null)
+                return Failure("The output of transaction $clashingTransaction is already assigned as input to pending transaction $otherTransaction.")
+        }
+
+        return Success
     }
 
     private fun validate(transaction: JsonNode): Result {

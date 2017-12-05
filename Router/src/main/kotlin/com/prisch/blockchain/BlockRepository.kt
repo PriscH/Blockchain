@@ -2,21 +2,18 @@ package com.prisch.blockchain
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.prisch.util.Failure
-import com.prisch.util.Result
-import com.prisch.util.State
-import com.prisch.util.Success
+import com.prisch.util.*
 import org.springframework.stereotype.Repository
 
 @Repository
 class BlockRepository(
         private val state: State,
+        private val hasher: Hasher,
         private val transactionRepository: TransactionRepository,
         private val blockchainIndex: BlockchainIndex) {
 
     private final val COINBASE_ADDRESS = "00000000"
     private final val COINBASE_REWARD = 100
-    private final val TRANSACTION_LIMIT = 3
 
     private final val blockchain = mutableListOf<JsonNode>()
 
@@ -56,6 +53,10 @@ class BlockRepository(
         val transactionValidation = validateTransactions(block)
         if (transactionValidation is Failure)
             return transactionValidation
+
+        val hashValidation = validateHash(block)
+        if (hashValidation is Failure)
+            return hashValidation
 
         return Success
     }
@@ -99,8 +100,8 @@ class BlockRepository(
         if (coinbaseValidation is Failure)
             return coinbaseValidation
 
-        if (transactions.size() > TRANSACTION_LIMIT)
-            return Failure("A block may only contain $TRANSACTION_LIMIT, including the coinbase transaction.")
+        if (transactions.size() > state.transactionLimit)
+            return Failure("A block may only contain ${state.transactionLimit}, including the coinbase transaction.")
 
         val transactionHashes = transactions.map{ it.get(TransactionField.HASH.nodeName).asText() }
         if (transactionHashes.size != transactionHashes.distinct().size)
@@ -166,5 +167,33 @@ class BlockRepository(
             return Failure("The fee amount must match the total of the transaction fees.")
 
         return Success
+    }
+
+    private fun validateHash(block: JsonNode): Result {
+        val serializationBuilder = StringBuilder()
+
+        block.get(BlockField.TRANSACTIONS.nodeName).forEach {
+            serializationBuilder.append(it.get(TransactionField.HASH.nodeName).asText())
+        }
+
+        serializationBuilder.append(block.get(BlockField.PREVIOUS_HASH.nodeName).asText())
+        serializationBuilder.append(block.get(BlockField.NONCE.nodeName).asText())
+
+        val serializedTransaction = serializationBuilder.toString()
+        val blockHash = hasher.hashWithoutTrunc(serializedTransaction)
+
+        if (!satifiesHashCheck(blockHash)) {
+            val blockHashStart = blockHash.substring(0, state.hashCheck.length)
+            return Failure("The proposed block does not satisfy the proof of work check. The hash starts with $blockHashStart and needs to be less than ${state.hashCheck}.")
+        }
+
+        return Success
+    }
+
+    private fun satifiesHashCheck(blockHash: String): Boolean {
+        val checkLength = state.hashCheck.length
+        val blockHashStart = blockHash.substring(0, checkLength)
+
+        return blockHashStart <= state.hashCheck
     }
 }

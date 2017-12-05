@@ -61,6 +61,7 @@ class BlockchainController(val clientRepository: ClientRepository,
     @MessageExceptionHandler
     @SendToUser("/queue/messages")
     fun handleException(exception: Exception): PlainMessage {
+        LOG.error("Unhandled Exception", exception)
         return PlainMessage(ResponseType.ERROR, "You managed to break the server.\n Please call Jaco, he is going to be sad :(\n");
     }
 }
