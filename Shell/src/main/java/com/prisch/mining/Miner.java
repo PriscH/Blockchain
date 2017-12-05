@@ -12,6 +12,8 @@ import com.prisch.services.KeyService;
 import com.prisch.transactions.Coinbase;
 import com.prisch.transactions.Transaction;
 import com.prisch.transactions.TransactionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -24,6 +26,8 @@ import java.util.Map;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Miner implements Runnable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Miner.class);
 
     private volatile boolean interrupted;
     private volatile boolean foundBlock;
@@ -73,6 +77,8 @@ public class Miner implements Runnable {
 
                 foundBlock = true;
                 miningController.completeMining();
+
+                LOG.info(proposedBlock.toJson());
                 stompSessionHolder.getStompSession().send("/app/postBlock", proposedBlock);
             }
 

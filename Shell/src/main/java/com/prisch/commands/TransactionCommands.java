@@ -12,6 +12,8 @@ import com.prisch.transactions.TransactionRepository;
 import com.prisch.util.Result;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellCommandGroup;
@@ -23,6 +25,8 @@ import java.util.*;
 @ShellComponent
 @ShellCommandGroup("Blockchain")
 public class TransactionCommands {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TransactionCommands.class);
 
     private static final String INTEGER_REGEX = "^-?\\d+$";
 
@@ -63,6 +67,7 @@ public class TransactionCommands {
                                                                      .toAnsi();
             System.out.println("\n" + transactionDisplay);
 
+            LOG.info(transaction.toJson());
             stompSessionHolder.getStompSession().send("/app/postTransaction", transaction);
         }
         return null;
@@ -166,7 +171,7 @@ public class TransactionCommands {
         List<Transaction.Output> outputs = buildOutputs(address, transferAmount, feeAmount, inputAmount);
         Map<String, String> properties = buildProperties();
 
-        String transactionHash = hash(inputs, outputs);
+        String transactionHash = hash(inputs, outputs, feeAmount);
         String signature = keyService.sign(transactionHash);
         String publicKey = keyService.readPublicKey();
 
@@ -232,13 +237,15 @@ public class TransactionCommands {
         return properties;
     }
 
-    private String hash(List<Transaction.Input> inputs, List<Transaction.Output> outputs) {
+    private String hash(List<Transaction.Input> inputs, List<Transaction.Output> outputs, int feeAmount) {
         StringBuilder serializationBuilder = new StringBuilder();
 
         inputs.forEach(in -> serializationBuilder.append(in.getTransactionHash()));
 
         outputs.forEach(out -> serializationBuilder.append(out.getAddress())
                                                    .append(out.getAmount()));
+
+        serializationBuilder.append(feeAmount);
 
         String serializedTransaction = serializationBuilder.toString();
         return hashService.hash(serializedTransaction);

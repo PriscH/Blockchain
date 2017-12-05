@@ -66,7 +66,7 @@ public class TransactionRepository {
 
     public List<Transaction> getMostProfitableTransactions(int count) {
         return pendingTransactionMap.values().stream()
-                                    .sorted(Comparator.comparingInt(Transaction::getFeeAmount))
+                                    .sorted(Comparator.comparingInt(Transaction::getFeeAmount).reversed())
                                     .limit(count)
                                     .collect(Collectors.toList());
     }

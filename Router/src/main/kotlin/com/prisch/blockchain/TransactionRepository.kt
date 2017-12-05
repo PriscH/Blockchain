@@ -35,6 +35,11 @@ class TransactionRepository(
         return pendingTransactionMap.values.toList()
     }
 
+    @Synchronized
+    fun getTransaction(transactionHash: String): JsonNode? {
+        return pendingTransactionMap[transactionHash]
+    }
+
     private fun validate(transaction: JsonNode): Result {
         if (transaction.get(TransactionField.VERSION.nodeName).asInt() != state.version)
             return Failure("The epicoin network is at version ${state.version}.")
@@ -149,6 +154,8 @@ class TransactionRepository(
             serializationBuilder.append(it.get(TransactionField.OUTPUT_ADDRESS.nodeName).asText())
                                 .append(it.get(TransactionField.OUTPUT_AMOUNT.nodeName).asInt())
         }
+
+        serializationBuilder.append(transaction.get(TransactionField.FEE_AMOUNT.nodeName).asInt())
 
         val serializedTransaction = serializationBuilder.toString()
         val expectedHash = hasher.hash(serializedTransaction)
