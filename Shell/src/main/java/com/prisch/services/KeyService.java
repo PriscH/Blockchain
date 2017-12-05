@@ -9,6 +9,7 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 @Component
@@ -58,19 +59,38 @@ public class KeyService {
         address = null;
     }
 
-    public String sign(String content) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+    public String sign(String content) {
         String privateKeyContent = readPrivateKey();
 
         KeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyContent));
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 
-        Signature signature = Signature.getInstance("SHA1WithRSA");
-        signature.initSign(privateKey);
-        signature.update(content.getBytes());
+            Signature signature = Signature.getInstance("SHA1WithRSA");
+            signature.initSign(privateKey);
+            signature.update(content.getBytes());
 
-        byte[] signatureStream = signature.sign();
-        return Base64.getEncoder().encodeToString(signatureStream);
+            byte[] signatureStream = signature.sign();
+            return Base64.getEncoder().encodeToString(signatureStream);
+        } catch (NoSuchAlgorithmException | SignatureException | InvalidKeySpecException | InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    public boolean verifySignature(String publicKeyString, String signatureValue, String content) {
+        KeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyString));
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PublicKey publicKey = keyFactory.generatePublic(keySpec);
+
+            Signature signature = Signature.getInstance("SHA1WithRSA");
+            signature.initVerify(publicKey);
+            signature.update(content.getBytes());
+
+            return signature.verify(Base64.getDecoder().decode(signatureValue));
+        } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException | InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

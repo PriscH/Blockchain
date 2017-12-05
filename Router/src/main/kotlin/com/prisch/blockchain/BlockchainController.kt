@@ -5,6 +5,7 @@ import com.prisch.client.ClientRepository
 import com.prisch.communication.PlainMessage
 import com.prisch.communication.ResponseType
 import com.prisch.util.Failure
+import com.prisch.util.State
 import org.slf4j.LoggerFactory
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -18,12 +19,18 @@ import java.security.Principal
 class BlockchainController(val clientRepository: ClientRepository,
                            val transactionRepository: TransactionRepository,
                            val blockRepository: BlockRepository,
-                           val messageOperations: SimpMessageSendingOperations) {
+                           val messageOperations: SimpMessageSendingOperations,
+                           val state: State) {
 
     val LOG = LoggerFactory.getLogger(BlockchainController::class.java)
 
     @MessageMapping("/postTransaction")
     fun postTransaction(@RequestBody transaction: JsonNode, principal: Principal) {
+        if (!state.allowTransactions) {
+            messageOperations.convertAndSendToUser(principal.name, "/queue/messages", PlainMessage(ResponseType.WARNING, "Transactions are currently disabled."))
+            return
+        }
+
         LOG.info("TRANSACTION = ${clientRepository.getClientName(principal)} : $transaction")
         val result = transactionRepository.addTransaction(transaction)
 
@@ -38,6 +45,11 @@ class BlockchainController(val clientRepository: ClientRepository,
 
     @MessageMapping("/postBlock")
     fun postBlock(@RequestBody block: JsonNode, principal: Principal) {
+        if (!state.allowBlocks) {
+            messageOperations.convertAndSendToUser(principal.name, "/queue/messages", PlainMessage(ResponseType.WARNING, "Transactions are currently disabled."))
+            return
+        }
+
         LOG.info("BLOCK = ${clientRepository.getClientName(principal)} : $block")
         val result = blockRepository.addBlock(block)
 

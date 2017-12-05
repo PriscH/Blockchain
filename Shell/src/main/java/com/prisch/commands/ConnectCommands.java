@@ -1,10 +1,12 @@
 package com.prisch.commands;
 
 import com.prisch.StompSessionHolder;
+import com.prisch.blockchain.BlockchainPropertiesHandler;
 import com.prisch.blocks.BlockHandler;
 import com.prisch.blocks.BlockSyncHandler;
 import com.prisch.global.Settings;
 import com.prisch.messages.PlainMessageHandler;
+import com.prisch.messages.UserMessageHandler;
 import com.prisch.transactions.TransactionHandler;
 import com.prisch.transactions.TransactionSyncHandler;
 import org.jline.utils.AttributedStringBuilder;
@@ -40,6 +42,8 @@ public class ConnectCommands {
     @Autowired private TransactionHandler transactionHandler;
     @Autowired private BlockSyncHandler blockSyncHandler;
     @Autowired private TransactionSyncHandler transactionSyncHandler;
+    @Autowired private BlockchainPropertiesHandler blockchainPropertiesHandler;
+    @Autowired private UserMessageHandler userMessageHandler;
 
     @ShellMethod("Connect to the epicoin network")
     public String connect() throws Exception {
@@ -76,6 +80,9 @@ public class ConnectCommands {
 
             session.subscribe("/user/queue/blocks", blockSyncHandler);
             session.subscribe("/user/queue/transactions", transactionSyncHandler);
+
+            session.subscribe("/topic/settings", blockchainPropertiesHandler);
+            session.subscribe("/topic/messages", userMessageHandler);
 
             session.send("/app/registerClient", Settings.NAME);
             stompSessionHolder.getStompSession().send("/app/sync", "sync");

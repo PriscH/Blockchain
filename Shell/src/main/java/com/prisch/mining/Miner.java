@@ -91,7 +91,7 @@ public class Miner implements Runnable {
     }
 
     private List<Transaction> buildTransactions(int proposedHeight) {
-        List<Transaction> transactions = transactionRepository.getMostProfitableTransactions(Constants.TRANSACTION_LIMIT - 1); // Consider the Coinbase Transaction
+        List<Transaction> transactions = transactionRepository.getMostProfitableTransactions(blockchainProperties.getTransactionLimit() - 1); // Consider the Coinbase Transaction
         int transactionFees = transactions.stream().mapToInt(Transaction::getFeeAmount).sum();
 
         Transaction.Output output = new Transaction.Output();

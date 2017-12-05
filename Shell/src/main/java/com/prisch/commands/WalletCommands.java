@@ -12,6 +12,7 @@ import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
+import org.springframework.shell.standard.ShellMethodAvailability;
 
 import java.util.Collection;
 import java.util.List;
@@ -99,5 +100,18 @@ public class WalletCommands {
                                                              tx.getHash(),
                                                              tx.getOutputs().stream().map(Transaction.Output::getAddress).collect(Collectors.joining(", "))))
                                     .collect(Collectors.joining("\n"));
+    }
+
+    @ShellMethodAvailability({"print", "printBlocks", "printPendingTransactions"})
+    public Availability printHashAvailabilityCheck() {
+        if (!stompSessionHolder.isConnected()) {
+            return Availability.unavailable("your client is not connected to the epicoin network (use 'connect' to connect).");
+        }
+
+        if (blockchainIndex.isEmpty()) {
+            return Availability.unavailable("you have not received the blockchain yet (wait a while or try 'resync').");
+        }
+
+        return Availability.available();
     }
 }
