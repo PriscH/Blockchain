@@ -38,6 +38,6 @@ class GenesisInput {
 }
 
 class GenesisOutput {
-    val address = "TODOTODO"
+    val address = "//NzHW4="
     val amount = 1000000
 }

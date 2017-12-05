@@ -54,6 +54,10 @@ public class KeyService {
         return address;
     }
 
+    public void resetAddress() {
+        address = null;
+    }
+
     public String sign(String content) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
         String privateKeyContent = readPrivateKey();
 

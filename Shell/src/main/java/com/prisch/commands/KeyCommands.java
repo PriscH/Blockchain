@@ -1,6 +1,7 @@
 package com.prisch.commands;
 
 import com.prisch.global.Constants;
+import com.prisch.services.KeyService;
 import com.prisch.shell.ShellLineReader;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
@@ -21,6 +22,7 @@ import java.util.Base64;
 public class KeyCommands {
 
     @Autowired private ShellLineReader shellLineReader;
+    @Autowired private KeyService keyService;
 
     @ShellMethod("Generate Public-Private key pair")
     public String generateKeys() throws Exception {
@@ -39,6 +41,7 @@ public class KeyCommands {
         String confirmation = shellLineReader.readLine(WARNING_MESSAGE);
         if (confirmation.equalsIgnoreCase("yes")) {
             writeKeys();
+            keyService.resetAddress();
             return "Successfully generated a key pair. You have a new address.";
         }
         return "Key pair generation cancelled.";

@@ -9,8 +9,8 @@ import java.util.*
 @Component
 class Encryption {
 
-    fun verifySignature(content: String, signedValue: String, publicKey: String): Boolean {
-        val keySpec = X509EncodedKeySpec(Base64.getDecoder().decode(publicKey))
+    fun verifySignature(content: String, signedValue: String, publicKeyContent: String): Boolean {
+        val keySpec = X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent))
         val keyFactory = KeyFactory.getInstance("RSA")
         val publicKey = keyFactory.generatePublic(keySpec)
 
