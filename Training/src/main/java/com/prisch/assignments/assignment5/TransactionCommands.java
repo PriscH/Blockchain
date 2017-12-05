@@ -72,6 +72,10 @@ public class TransactionCommands {
     }
 
     private Availability postTransactionAvailability() {
+        if (Settings.VERSION < 5) {
+            return Availability.unavailable("posting a transaction is only supported from version 5");
+        }
+
         if (!keyService.checkKeysExist()) {
             return Availability.unavailable("you do not have a key pair yet (use 'generate-keys' to generate them).");
         }

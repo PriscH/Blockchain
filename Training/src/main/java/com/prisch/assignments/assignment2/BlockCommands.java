@@ -40,7 +40,7 @@ public class BlockCommands {
     }
 
     private Availability postBlockAvailability() {
-        if (Settings.VERSION == 2) {
+        if (Settings.VERSION != 2) {
             return Availability.unavailable("posting a block without mining is only supported in version 2");
         }
 
