@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.prisch.util.*
 import org.springframework.stereotype.Repository
+import java.io.File
 
 @Repository
 class BlockRepository(
@@ -14,6 +15,7 @@ class BlockRepository(
 
     private final val COINBASE_ADDRESS = "00000000"
     private final val COINBASE_REWARD = 100
+    private final val BLOCKCHAIN_STORE = "blockchain.json"
 
     private final val blockchain = mutableListOf<JsonNode>()
 
@@ -34,12 +36,32 @@ class BlockRepository(
             transactionRepository.removeTransaction(it.get(TransactionField.HASH.nodeName).asText())
         }
 
+        persistBlockchain()
+
         return Success
     }
 
     @Synchronized
     fun getBlocks(): List<JsonNode> {
         return blockchain.toList()
+    }
+
+    @Synchronized
+    fun loadBlockchain() {
+        blockchain.clear()
+
+        val blocks = jacksonObjectMapper().reader()
+                                          .readTree(File(BLOCKCHAIN_STORE).bufferedReader())
+
+        blocks.forEach {
+            blockchain.add(it)
+            blockchainIndex.processBlock(it)
+        }
+    }
+
+    private fun persistBlockchain() {
+        jacksonObjectMapper().writer()
+                             .writeValue(File(BLOCKCHAIN_STORE), blockchain)
     }
 
     private fun validate(block: JsonNode): Result {
