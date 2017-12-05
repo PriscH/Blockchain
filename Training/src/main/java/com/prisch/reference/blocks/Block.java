@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prisch.reference.transactions.Transaction;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,14 +14,14 @@ public class Block {
     private int version;
     private int height;
 
-    private List<Transaction> transactions;
+    private List<Transaction> transactions = new LinkedList<>();
 
     private long nonce;
 
     private String previousHash;
     private String hash;
 
-    private Map<String, String> properties;
+    private Map<String, String> properties = new HashMap<>();
 
     public int getVersion() {
         return version;

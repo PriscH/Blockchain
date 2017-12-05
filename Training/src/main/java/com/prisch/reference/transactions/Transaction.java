@@ -3,6 +3,8 @@ package com.prisch.reference.transactions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -10,8 +12,8 @@ public class Transaction {
 
     private int version;
 
-    private List<Input> inputs;
-    private List<Output> outputs;
+    private List<Input> inputs = new LinkedList<>();
+    private List<Output> outputs = new LinkedList<>();
 
     private int feeAmount;
 
@@ -19,7 +21,7 @@ public class Transaction {
     private String signature;
     private String publicKey;
 
-    private Map<String, String> properties;
+    private Map<String, String> properties = new HashMap<>();
 
     public int getVersion() {
         return version;
