@@ -7,9 +7,11 @@ import com.prisch.util.Success
 import org.springframework.stereotype.Repository
 
 @Repository
-class BlockRepository {
+class BlockRepository(
+        private val transactionRepository: TransactionRepository,
+        private val blockchainIndex: BlockchainIndex) {
 
-    private val blockchain = mutableListOf<JsonNode>()
+    private final val blockchain = mutableListOf<JsonNode>()
 
     init {
         val genesisString = jacksonObjectMapper().writeValueAsString(GenesisBlock())
@@ -21,6 +23,11 @@ class BlockRepository {
         // TODO: Add validations
 
         blockchain.add(block)
+        blockchainIndex.processBlock(block)
+        block.get(BlockField.TRANSACTIONS.nodeName).forEach {
+            transactionRepository.removeTransaction(it.get(TransactionField.HASH.nodeName).asText())
+        }
+
         return Success
     }
 
