@@ -68,6 +68,10 @@ class BlockRepository(
         if (block.get(BlockField.VERSION.nodeName).asInt() != state.version)
             return Failure("The epicoin network is at version ${state.version}.")
 
+        val hashCollisionValidation = validateHashCollision(block)
+        if (hashCollisionValidation is Failure)
+            return hashCollisionValidation
+
         val previousBlockValidation = validateAgainstPreviousBlock(block)
         if (previousBlockValidation is Failure)
             return previousBlockValidation
@@ -79,6 +83,14 @@ class BlockRepository(
         val hashValidation = validateHash(block)
         if (hashValidation is Failure)
             return hashValidation
+
+        return Success
+    }
+
+    private fun validateHashCollision(block: JsonNode): Result {
+        val blockHash = block.get(BlockField.HASH.nodeName).asText()
+        if (blockchain.any { it.get(BlockField.HASH.nodeName).asText() == blockHash })
+            return Failure("The block hash clashes with an existing block.")
 
         return Success
     }

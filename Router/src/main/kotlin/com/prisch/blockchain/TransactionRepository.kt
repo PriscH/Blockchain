@@ -73,6 +73,10 @@ class TransactionRepository(
         if (transaction.get(TransactionField.VERSION.nodeName).asInt() != state.version)
             return Failure("The epicoin network is at version ${state.version}.")
 
+        val hashCollisionValidation = validateHashCollision(transaction)
+        if (hashCollisionValidation is Failure)
+            return hashCollisionValidation
+
         if (state.version >= TransactionField.INPUTS.version) {
             val inputs = transaction.get(TransactionField.INPUTS.nodeName)
 
@@ -121,6 +125,14 @@ class TransactionRepository(
             return Left("All transaction inputs should come from the same address.")
 
         return Right(address)
+    }
+
+    private fun validateHashCollision(transaction: JsonNode): Result {
+        val transactionHash = transaction.get(TransactionField.HASH.nodeName).asText()
+        if (blockchainIndex.getTransaction(transactionHash) != null)
+            return Failure("The transaction hash clashes with an existing transaction.")
+
+        return Success
     }
 
     private fun validateInput(input: JsonNode): Result {
