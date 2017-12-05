@@ -27,7 +27,7 @@ public class MessageCommands {
 
     @ShellMethod("Post a message to the network.")
     public void postMessage() {
-        String content = shellLineReader.readLine("Type your message:");
+        String content = shellLineReader.readLine("Type your message:\n");
 
         UserMessage message = new UserMessage();
         message.setAuthor(Settings.NAME);
