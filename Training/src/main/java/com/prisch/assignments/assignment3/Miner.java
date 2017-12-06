@@ -3,7 +3,6 @@ package com.prisch.assignments.assignment3;
 import com.prisch.assignments.Settings;
 import com.prisch.assignments.assignment4.Coinbase;
 import com.prisch.assignments.assignment6.TransactionRepository;
-import com.prisch.assignments.assignment8.PropertiesBuilder;
 import com.prisch.ignore.StompSessionHolder;
 import com.prisch.ignore.blocks.BlockRepository;
 import com.prisch.ignore.messages.MessageHolder;
@@ -20,6 +19,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -42,7 +42,6 @@ public class Miner implements Runnable {
     @Autowired private BlockchainProperties blockchainProperties;
     @Autowired private StompSessionHolder stompSessionHolder;
     @Autowired private MessageHolder messageHolder;
-    @Autowired private PropertiesBuilder propertiesBuilder;
 
     public void interrupt() {
         interrupted = true;
@@ -118,7 +117,7 @@ public class Miner implements Runnable {
         block.setTransactions(transactions);
 
         block.setPreviousHash(previousBlock.getHash());
-        block.setProperties(propertiesBuilder.buildProperties());
+        block.setProperties(new HashMap<>());
 
         return block;
     }

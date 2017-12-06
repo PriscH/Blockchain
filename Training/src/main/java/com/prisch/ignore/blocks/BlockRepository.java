@@ -1,9 +1,8 @@
 package com.prisch.ignore.blocks;
 
-import com.prisch.assignments.assignment8.JacoBlockValidator;
+import com.prisch.assignments.assignment6.TransactionRepository;
 import com.prisch.ignore.blockchain.BlockchainIndex;
 import com.prisch.ignore.messages.MessageHolder;
-import com.prisch.assignments.assignment6.TransactionRepository;
 import com.prisch.reference.blocks.Block;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -17,19 +16,14 @@ public class BlockRepository {
     @Autowired private TransactionRepository transactionRepository;
     @Autowired private BlockchainIndex blockchainIndex;
     @Autowired private MessageHolder messageHolder;
-    @Autowired private JacoBlockValidator jacoBlockValidator;
 
     private final List<Block> blockchain = new ArrayList<>();
 
     public synchronized void addBlock(Block block) {
-        if (jacoBlockValidator.validate(block)) {
-            blockchain.add(block);
-            blockchainIndex.add(block);
+        blockchain.add(block);
+        blockchainIndex.add(block);
 
-            transactionRepository.acceptTransactions(block.getTransactions());
-        } else {
-            messageHolder.addMessage("A block from the other fork was discarded.");
-        }
+        transactionRepository.acceptTransactions(block.getTransactions());
     }
 
     public synchronized void syncBlocks(List<Block> blocks) {

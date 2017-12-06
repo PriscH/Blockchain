@@ -1,7 +1,6 @@
 package com.prisch.assignments.assignment6;
 
 import com.prisch.assignments.assignment7.TransactionValidator;
-import com.prisch.assignments.assignment8.JacoTransactionValidator;
 import com.prisch.ignore.messages.MessageHolder;
 import com.prisch.reference.services.KeyService;
 import com.prisch.reference.transactions.Transaction;
@@ -18,7 +17,6 @@ public class TransactionRepository {
     @Autowired private MessageHolder messageHolder;
     @Autowired private KeyService keyService;
     @Autowired private TransactionValidator transactionValidator;
-    @Autowired private JacoTransactionValidator jacoTransactionValidator;
 
     private final Map<String, Transaction> pendingTransactionMap = new ConcurrentHashMap<>();
     private final Map<String, Transaction> unclaimedTransactionMap = new ConcurrentHashMap<>();
@@ -34,11 +32,7 @@ public class TransactionRepository {
 
     public void addPendingTransaction(Transaction transaction) {
         if (transactionValidator.validate(transaction)) {
-            if (jacoTransactionValidator.validate(transaction)) {
-                pendingTransactionMap.put(transaction.getHash(), transaction);
-            } else {
-                messageHolder.addMessage("A transaction from the other fork was discarded.");
-            }
+            pendingTransactionMap.put(transaction.getHash(), transaction);
         }
     }
 

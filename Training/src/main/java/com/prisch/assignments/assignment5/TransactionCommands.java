@@ -2,7 +2,6 @@ package com.prisch.assignments.assignment5;
 
 import com.prisch.assignments.Settings;
 import com.prisch.assignments.assignment6.TransactionRepository;
-import com.prisch.assignments.assignment8.PropertiesBuilder;
 import com.prisch.ignore.StompSessionHolder;
 import com.prisch.ignore.blockchain.BlockchainIndex;
 import com.prisch.ignore.shell.ShellLineReader;
@@ -39,7 +38,6 @@ public class TransactionCommands {
     @Autowired private BlockchainIndex blockchainIndex;
     @Autowired private TransactionRepository transactionRepository;
     @Autowired private TransactionInputBuilder transactionInputBuilder;
-    @Autowired private PropertiesBuilder propertiesBuilder;
 
     @ShellMethod("Post a transaction to the blockchain")
     public String postTransaction() throws Exception {
@@ -184,7 +182,7 @@ public class TransactionCommands {
         transaction.setHash(transactionHash);
         transaction.setSignature(signature);
         transaction.setPublicKey(publicKey);
-        transaction.setProperties(propertiesBuilder.buildProperties());
+        transaction.setProperties(new HashMap<>());
 
         return transaction;
     }

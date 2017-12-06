@@ -14,6 +14,4 @@ public class Constants {
     public static final int COINBASE_REWARD = 100;
 
     public static final String COINBASE_ADDRESS = "00000000";
-
-    public static final String STOP_JACO_KEY = "stopJaco";
 }
