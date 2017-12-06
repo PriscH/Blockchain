@@ -10,6 +10,7 @@ public class UserMessage {
     private String hash;
     private String signature;
     private String publicKey;
+    private String recipient;
 
     public String getAuthor() {
         return author;
@@ -49,6 +50,14 @@ public class UserMessage {
 
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
     }
 
     public String toJson() {

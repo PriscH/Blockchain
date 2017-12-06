@@ -49,10 +49,6 @@ public class MessageCommands {
             return Availability.unavailable("you do not have a key pair yet (use 'generate-keys' to generate them).");
         }
 
-        if (Settings.VERSION > 1) {
-            return Availability.unavailable("sending messages is no longer available.");
-        }
-
         return Availability.available();
     }
 }

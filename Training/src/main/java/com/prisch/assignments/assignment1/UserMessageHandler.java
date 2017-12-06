@@ -32,5 +32,11 @@ public class UserMessageHandler extends StompSessionHandlerAdapter {
         // Use the hashService and keyService to verify that the received userMessage is consistent and signed
         // Modify the message provided to the messageHolder to indicate this
         messageHolder.addMessage(String.format("%s says '%s'", userMessage.getAuthor(), userMessage.getContent()));
+
+        // TODO: [1+]
+        // Use the provided public key to send the author a secret message
+        // Encrypt your message so that only the author is able to decrypt it with their private key
+        // Write corresponding code to accept incoming messages address to you and encrypted with your public key
+        // and decrypt them
     }
 }
