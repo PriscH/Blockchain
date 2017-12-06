@@ -1,10 +1,10 @@
 package com.prisch.assignments.assignment2;
 
+import com.prisch.assignments.Settings;
 import com.prisch.ignore.StompSessionHolder;
 import com.prisch.ignore.blocks.BlockRepository;
-import com.prisch.assignments.Settings;
-import com.prisch.reference.services.HashService;
 import com.prisch.reference.blocks.Block;
+import com.prisch.reference.services.HashService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,8 @@ import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
+
+import java.util.LinkedList;
 
 @ShellComponent
 @ShellCommandGroup("Blockchain")
@@ -34,6 +36,12 @@ public class BlockCommands {
         // Feel free to add anything you want to the properties at this stage
 
         Block proposedBlock = new Block();
+
+        proposedBlock.setVersion(Settings.VERSION);
+        proposedBlock.setHeight(lastBlock.getHeight() + 1);
+        proposedBlock.setTransactions(new LinkedList<>());
+        proposedBlock.setPreviousHash(lastBlock.getHash());
+        proposedBlock.setHash(hashService.hash(lastBlock.getHash()));
 
         LOG.info(proposedBlock.toJson());
         stompSessionHolder.getStompSession().send("/app/postBlock", proposedBlock);

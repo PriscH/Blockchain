@@ -68,21 +68,23 @@ class BlockRepository(
         if (block.get(BlockField.VERSION.nodeName).asInt() != state.version)
             return Failure("The epicoin network is at version ${state.version}.")
 
-        val hashCollisionValidation = validateHashCollision(block)
-        if (hashCollisionValidation is Failure)
-            return hashCollisionValidation
-
         val previousBlockValidation = validateAgainstPreviousBlock(block)
         if (previousBlockValidation is Failure)
             return previousBlockValidation
 
-        val transactionValidation = validateTransactions(block)
-        if (transactionValidation is Failure)
-            return transactionValidation
+        if (state.version > 2) {
+            val hashCollisionValidation = validateHashCollision(block)
+            if (hashCollisionValidation is Failure)
+                return hashCollisionValidation
 
-        val hashValidation = validateHash(block)
-        if (hashValidation is Failure)
-            return hashValidation
+            val transactionValidation = validateTransactions(block)
+            if (transactionValidation is Failure)
+                return transactionValidation
+
+            val hashValidation = validateHash(block)
+            if (hashValidation is Failure)
+                return hashValidation
+        }
 
         return Success
     }
@@ -119,20 +121,22 @@ class BlockRepository(
                     .any { inp -> inp.get(TransactionField.INPUT_ADDRESS.nodeName).asText() == COINBASE_ADDRESS }
         }
 
-        val coinbaseCount = transactions.count(coinbaseCheck)
+        if (state.version > 3) {
+            val coinbaseCount = transactions.count(coinbaseCheck)
 
-        if (coinbaseCount == 0)
-            return Failure("Your block must include a coinbase transaction.")
+            if (coinbaseCount == 0)
+                return Failure("Your block must include a coinbase transaction.")
 
-        if (coinbaseCount > 1)
-            return Failure("Your block is only allowed to contain a single coinbase transaction")
+            if (coinbaseCount > 1)
+                return Failure("Your block is only allowed to contain a single coinbase transaction")
 
-        val coinbase = transactions.find(coinbaseCheck)!!
+            val coinbase = transactions.find(coinbaseCheck)!!
 
-        val feeAmount = transactions.map{ it.get(TransactionField.FEE_AMOUNT.nodeName).asInt() }.sum()
-        val coinbaseValidation = validateCoinbase(coinbase, feeAmount)
-        if (coinbaseValidation is Failure)
-            return coinbaseValidation
+            val feeAmount = transactions.map { it.get(TransactionField.FEE_AMOUNT.nodeName).asInt() }.sum()
+            val coinbaseValidation = validateCoinbase(coinbase, feeAmount)
+            if (coinbaseValidation is Failure)
+                return coinbaseValidation
+        }
 
         if (transactions.size() > state.transactionLimit)
             return Failure("A block may only contain ${state.transactionLimit}, including the coinbase transaction.")
