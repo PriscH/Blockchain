@@ -18,6 +18,11 @@ public class TransactionValidator {
         // 3) Use the public key to verify the signature against the transaction hash
         // Hint: Have a look at what TransactionCommands is doing, seeing as it is responsible for signing the transaction
 
+        // TODO: [7+]
+        // Perform the other transaction validations as well. At a high level:
+        // 1) Ensure that the input amounts match the output amounts
+        // 2) Ensure that the inputs have not been used yet
+
         boolean result = true;
         if (!result) {
             System.out.println(new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED))

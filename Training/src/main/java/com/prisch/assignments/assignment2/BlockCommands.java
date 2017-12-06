@@ -31,7 +31,6 @@ public class BlockCommands {
         // Create a block that follows on the last block
         // Ensure that the height is correct and that the previous hash matches the last block
         // You can ignore the nonce for now
-        // Feel free to add anything you want to the properties at this stage
 
         Block proposedBlock = new Block();
         

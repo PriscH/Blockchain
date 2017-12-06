@@ -72,6 +72,9 @@ public class Miner implements Runnable {
         // The current mining strategy will only ever reward the fastest computer.
         // Change this strategy (the way the nonce values are chosen) to give yourself a chance at mining a block.
 
+        // TODO: [3+]
+        // Team up with other developers and create a mining pool
+
         while (!interrupted) {
             String blockHash = hash(transactions, previousBlock.getHash(), nonce);
 
