@@ -19,7 +19,7 @@ class SettingController(
 
     @MessageMapping("/settings")
     @SendToUser("/queue/messages")
-    fun postMessage(@RequestBody message: JsonNode, principal: Principal): PlainMessage {
+    fun updateSettings(@RequestBody message: JsonNode, principal: Principal): PlainMessage {
         val notifyClients =
                 state.hashCheck != message["hashCheck"].asText()
                 || state.transactionLimit != message["transactionLimit"].asInt()
