@@ -34,7 +34,7 @@ public class MessageCommands {
         message.setContent(content);
         // TODO: [1A]
         // Use the hashService and keyService to complete the UserMessage
-        // by providing a hash and signature of the content as well as your public key for verification
+        // by providing a hash and signature of the hash as well as your public key for verification
 
         LOG.info(message.toJson());
         stompSessionHolder.getStompSession().send("/app/postMessage", message);

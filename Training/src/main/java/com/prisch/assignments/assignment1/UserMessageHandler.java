@@ -1,6 +1,6 @@
 package com.prisch.assignments.assignment1;
 
-import com.prisch.ignore.messages.MessageHolder;
+import com.prisch.ignore.messages.LocalMessages;
 import com.prisch.reference.messages.UserMessage;
 import com.prisch.reference.services.HashService;
 import com.prisch.reference.services.KeyService;
@@ -14,7 +14,7 @@ import java.lang.reflect.Type;
 @Component
 public class UserMessageHandler extends StompSessionHandlerAdapter {
 
-    @Autowired private MessageHolder messageHolder;
+    @Autowired private LocalMessages localMessages;
     @Autowired private HashService hashService;
     @Autowired private KeyService keyService;
     @Autowired private SignatureVerifier signatureVerifier;
@@ -28,10 +28,18 @@ public class UserMessageHandler extends StompSessionHandlerAdapter {
     public void handleFrame(StompHeaders headers, Object payload) {
         UserMessage userMessage = (UserMessage)payload;
 
-        // TODO: [1B]
-        // Use the hashService and keyService to verify that the received userMessage is consistent and signed
-        // Modify the message provided to the messageHolder to indicate this
-        messageHolder.addMessage(String.format("%s says '%s'", userMessage.getAuthor(), userMessage.getContent()));
+        // TODO: [1C]
+        // Use the hashService and keyService in conjunction with the SignatureVerifier to verify that the received userMessage is consistent and signed
+        boolean hashValid = true;
+        boolean signatureValid = true;
+
+        if (!hashValid) {
+            localMessages.addMessage(String.format("%s provided an invalid hash on their message (%s).", userMessage.getAuthor(), userMessage.getContent()));
+        } else if (!signatureValid) {
+            localMessages.addMessage(String.format("%s provided an invalid signature on their message (%s).", userMessage.getAuthor(), userMessage.getContent()));
+        } else {
+            localMessages.addMessage(String.format("%s says '%s' [VERIFIED]", userMessage.getAuthor(), userMessage.getContent()));
+        }
 
         // TODO: [1+]
         // Use the provided public key to send the author a secret message

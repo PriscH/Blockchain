@@ -5,7 +5,7 @@ import com.prisch.assignments.assignment4.Coinbase;
 import com.prisch.assignments.assignment6.TransactionRepository;
 import com.prisch.ignore.StompSessionHolder;
 import com.prisch.ignore.blocks.BlockRepository;
-import com.prisch.ignore.messages.MessageHolder;
+import com.prisch.ignore.messages.LocalMessages;
 import com.prisch.ignore.mining.MiningController;
 import com.prisch.reference.blockchain.BlockchainProperties;
 import com.prisch.reference.blocks.Block;
@@ -41,7 +41,7 @@ public class Miner implements Runnable {
     @Autowired private HashService hashService;
     @Autowired private BlockchainProperties blockchainProperties;
     @Autowired private StompSessionHolder stompSessionHolder;
-    @Autowired private MessageHolder messageHolder;
+    @Autowired private LocalMessages localMessages;
 
     public void interrupt() {
         interrupted = true;
@@ -92,7 +92,7 @@ public class Miner implements Runnable {
         }
 
         if (!foundBlock) {
-            messageHolder.addMessage(String.format("Mining was interrupted before a new block could found (previous block hash: %s)", previousBlockHash));
+            localMessages.addMessage(String.format("Mining was interrupted before a new block could found (previous block hash: %s)", previousBlockHash));
         }
     }
 
@@ -137,7 +137,7 @@ public class Miner implements Runnable {
         // TODO: [3A]
         // Determine whether the provided blockHash satisfies the proof of work check by comparing with {@link BlockchainProperties.getHashCheck()}
         // This check should be successful if the starting substring is smaller than or equal to the hashCheck
-        // In other words, if the hashCheck is 3 characters long then the first 3 characters of the blockHash should comparTo < 0
+        // In other words, if the hashCheck is 3 characters long then the first 3 characters of the blockHash should compareTo < 0
 
         return false;
     }

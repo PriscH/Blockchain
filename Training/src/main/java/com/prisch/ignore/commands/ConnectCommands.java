@@ -1,19 +1,21 @@
 package com.prisch.ignore.commands;
 
+import com.prisch.assignments.Settings;
 import com.prisch.assignments.assignment1.UserMessageHandler;
 import com.prisch.ignore.StompSessionHolder;
 import com.prisch.ignore.blockchain.BlockchainPropertiesHandler;
 import com.prisch.ignore.blocks.BlockHandler;
 import com.prisch.ignore.blocks.BlockSyncHandler;
-import com.prisch.assignments.Settings;
 import com.prisch.ignore.messages.PlainMessageHandler;
 import com.prisch.ignore.transactions.TransactionHandler;
 import com.prisch.ignore.transactions.TransactionSyncHandler;
+import com.prisch.reference.services.KeyService;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
@@ -36,6 +38,7 @@ public class ConnectCommands {
 
     @Autowired private WebSocketStompClient stompClient;
     @Autowired private StompSessionHolder stompSessionHolder;
+    @Autowired private KeyService keyService;
 
     @Autowired private PlainMessageHandler plainMessageHandler;
     @Autowired private BlockHandler blockHandler;
@@ -66,12 +69,18 @@ public class ConnectCommands {
     }
 
     private Availability connectAvailability() {
+        if (!keyService.checkKeysExist()) {
+            return Availability.unavailable("you do not have a key pair yet (use 'generate-keys' to generate them).");
+        }
+
         return (!stompSessionHolder.isConnected())
                 ? Availability.available()
                 : Availability.unavailable("your client is already connected to the epicoin network.");
     }
 
     private class ConnectionHandler extends StompSessionHandlerAdapter {
+
+        @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
             session.subscribe("/user/queue/messages", plainMessageHandler);
 
@@ -86,6 +95,11 @@ public class ConnectCommands {
 
             session.send("/app/registerClient", Settings.NAME);
             stompSessionHolder.getStompSession().send("/app/sync", "sync");
+        }
+
+        @Override
+        public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
+            throw new RuntimeException(exception);
         }
     }
 }

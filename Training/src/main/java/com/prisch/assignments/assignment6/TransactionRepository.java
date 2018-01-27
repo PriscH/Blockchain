@@ -1,7 +1,7 @@
 package com.prisch.assignments.assignment6;
 
 import com.prisch.assignments.assignment7.TransactionValidator;
-import com.prisch.ignore.messages.MessageHolder;
+import com.prisch.ignore.messages.LocalMessages;
 import com.prisch.reference.services.KeyService;
 import com.prisch.reference.transactions.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Repository
 public class TransactionRepository {
 
-    @Autowired private MessageHolder messageHolder;
+    @Autowired private LocalMessages localMessages;
     @Autowired private KeyService keyService;
     @Autowired private TransactionValidator transactionValidator;
 
@@ -51,7 +51,7 @@ public class TransactionRepository {
         pendingTransactionMap.clear();
         transactions.forEach(this::addPendingTransaction);
 
-        messageHolder.addMessage(String.format("Synchronized the pending transactions: received %d transaction(s).", transactions.size()));
+        localMessages.addMessage(String.format("Synchronized the pending transactions: received %d transaction(s).", transactions.size()));
     }
 
     public void syncUnclaimedTransactions(List<Transaction> transactions) {

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository
-public class MessageHolder {
+public class LocalMessages {
 
     private final List<String> unreadMessages = new LinkedList<>();
     private List<String> readMessages = new LinkedList<>();
