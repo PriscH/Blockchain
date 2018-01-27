@@ -1,6 +1,7 @@
 package com.prisch.blockchain
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.prisch.client.ClientRepository
 import com.prisch.communication.PlainMessage
 import com.prisch.communication.ResponseType
@@ -68,6 +69,11 @@ class BlockchainController(val clientRepository: ClientRepository,
 
         messageOperations.convertAndSendToUser(principal.name, "/queue/blocks", blockRepository.getBlocks())
         messageOperations.convertAndSendToUser(principal.name, "/queue/transactions", transactionRepository.getTransactions())
+
+        val settings = jacksonObjectMapper().createObjectNode()
+        settings.put("hashCheck", state.hashCheck)
+        settings.put("transactionLimit", state.transactionLimit)
+        messageOperations.convertAndSendToUser(principal.name, "/queue/settings", settings)
     }
 
     @MessageExceptionHandler

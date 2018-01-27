@@ -10,7 +10,7 @@ import java.lang.reflect.Type;
 @Component
 public class UserMessageHandler extends StompSessionHandlerAdapter {
 
-    @Autowired private MessageHolder messageHolder;
+    @Autowired private LocalMessages localMessages;
 
     @Override
     public Type getPayloadType(StompHeaders headers) {
@@ -20,6 +20,6 @@ public class UserMessageHandler extends StompSessionHandlerAdapter {
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
         UserMessage userMessage = (UserMessage)payload;
-        messageHolder.addMessage(String.format("%s says '%s'", userMessage.getAuthor(), userMessage.getContent()));
+        localMessages.addMessage(String.format("%s says '%s'", userMessage.getAuthor(), userMessage.getContent()));
     }
 }

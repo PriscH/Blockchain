@@ -7,6 +7,7 @@ import com.prisch.blocks.BlockSyncHandler;
 import com.prisch.global.Settings;
 import com.prisch.messages.PlainMessageHandler;
 import com.prisch.messages.UserMessageHandler;
+import com.prisch.services.KeyService;
 import com.prisch.transactions.TransactionHandler;
 import com.prisch.transactions.TransactionSyncHandler;
 import org.jline.utils.AttributedStringBuilder;
@@ -14,6 +15,7 @@ import org.jline.utils.AttributedStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
@@ -36,6 +38,7 @@ public class ConnectCommands {
 
     @Autowired private WebSocketStompClient stompClient;
     @Autowired private StompSessionHolder stompSessionHolder;
+    @Autowired private KeyService keyService;
 
     @Autowired private PlainMessageHandler plainMessageHandler;
     @Autowired private BlockHandler blockHandler;
@@ -66,12 +69,18 @@ public class ConnectCommands {
     }
 
     private Availability connectAvailability() {
+        if (!keyService.checkKeysExist()) {
+            return Availability.unavailable("you do not have a key pair yet (use 'generate-keys' to generate them).");
+        }
+
         return (!stompSessionHolder.isConnected())
                 ? Availability.available()
                 : Availability.unavailable("your client is already connected to the epicoin network.");
     }
 
     private class ConnectionHandler extends StompSessionHandlerAdapter {
+
+        @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
             session.subscribe("/user/queue/messages", plainMessageHandler);
 
@@ -81,11 +90,17 @@ public class ConnectCommands {
             session.subscribe("/user/queue/blocks", blockSyncHandler);
             session.subscribe("/user/queue/transactions", transactionSyncHandler);
 
+            session.subscribe("/user/queue/settings", blockchainPropertiesHandler);
             session.subscribe("/topic/settings", blockchainPropertiesHandler);
             session.subscribe("/topic/messages", userMessageHandler);
 
             session.send("/app/registerClient", Settings.NAME);
             stompSessionHolder.getStompSession().send("/app/sync", "sync");
+        }
+
+        @Override
+        public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
+            throw new RuntimeException(exception);
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.prisch.blocks;
 
 import com.prisch.blockchain.BlockchainIndex;
-import com.prisch.messages.MessageHolder;
+import com.prisch.messages.LocalMessages;
 import com.prisch.transactions.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -14,7 +14,7 @@ public class BlockRepository {
 
     @Autowired private TransactionRepository transactionRepository;
     @Autowired private BlockchainIndex blockchainIndex;
-    @Autowired private MessageHolder messageHolder;
+    @Autowired private LocalMessages localMessages;
 
     private final List<Block> blockchain = new ArrayList<>();
 
@@ -30,7 +30,7 @@ public class BlockRepository {
         blockchain.addAll(blocks);
         blockchainIndex.sync(blocks);
 
-        messageHolder.addMessage(String.format("Synchronized the blockchain: received %d block(s).", blocks.size()));
+        localMessages.addMessage(String.format("Synchronized the blockchain: received %d block(s).", blocks.size()));
     }
 
     public synchronized Block getLastBlock() {

@@ -12,7 +12,7 @@ import java.lang.reflect.Type;
 @Component
 public class PlainMessageHandler extends StompSessionHandlerAdapter {
 
-    @Autowired private MessageHolder messageHolder;
+    @Autowired private LocalMessages localMessages;
 
     @Override public Type getPayloadType(StompHeaders headers) {
         return PlainMessage.class;
@@ -23,7 +23,7 @@ public class PlainMessageHandler extends StompSessionHandlerAdapter {
         PlainMessage plainMessage = (PlainMessage)payload;
 
         if (plainMessage.getType() == PlainMessage.Type.INFO) {
-            messageHolder.addMessage(plainMessage.getContent());
+            localMessages.addMessage(plainMessage.getContent());
         } else {
             StringBuilder messageBuilder = new StringBuilder();
             switch (plainMessage.getType()) {

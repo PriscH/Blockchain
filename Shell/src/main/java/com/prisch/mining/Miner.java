@@ -6,7 +6,7 @@ import com.prisch.blocks.Block;
 import com.prisch.blocks.BlockRepository;
 import com.prisch.global.Constants;
 import com.prisch.global.Settings;
-import com.prisch.messages.MessageHolder;
+import com.prisch.messages.LocalMessages;
 import com.prisch.services.HashService;
 import com.prisch.services.KeyService;
 import com.prisch.transactions.Coinbase;
@@ -42,7 +42,7 @@ public class Miner implements Runnable {
     @Autowired private HashService hashService;
     @Autowired private BlockchainProperties blockchainProperties;
     @Autowired private StompSessionHolder stompSessionHolder;
-    @Autowired private MessageHolder messageHolder;
+    @Autowired private LocalMessages localMessages;
 
     public void interrupt() {
         interrupted = true;
@@ -86,7 +86,7 @@ public class Miner implements Runnable {
         }
 
         if (!foundBlock) {
-            messageHolder.addMessage(String.format("Mining was interrupted before a new block could found (previous block hash: %s)", previousBlockHash));
+            localMessages.addMessage(String.format("Mining was interrupted before a new block could found (previous block hash: %s)", previousBlockHash));
         }
     }
 

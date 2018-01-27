@@ -1,6 +1,6 @@
 package com.prisch.transactions;
 
-import com.prisch.messages.MessageHolder;
+import com.prisch.messages.LocalMessages;
 import com.prisch.services.KeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Repository
 public class TransactionRepository {
 
-    @Autowired private MessageHolder messageHolder;
+    @Autowired private LocalMessages localMessages;
     @Autowired private KeyService keyService;
 
     private final Map<String, Transaction> pendingTransactionMap = new ConcurrentHashMap<>();
@@ -37,7 +37,7 @@ public class TransactionRepository {
         pendingTransactionMap.clear();
         transactions.forEach(this::addPendingTransaction);
 
-        messageHolder.addMessage(String.format("Synchronized the pending transactions: received %d transaction(s).", transactions.size()));
+        localMessages.addMessage(String.format("Synchronized the pending transactions: received %d transaction(s).", transactions.size()));
     }
 
     public void syncUnclaimedTransactions(List<Transaction> transactions) {
