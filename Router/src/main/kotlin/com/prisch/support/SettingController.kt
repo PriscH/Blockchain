@@ -2,6 +2,7 @@ package com.prisch.support
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.prisch.blockchain.BlockRepository
 import com.prisch.communication.PlainMessage
 import com.prisch.communication.ResponseType
 import com.prisch.util.State
@@ -15,7 +16,8 @@ import java.security.Principal
 @Controller
 class SettingController(
         private val state: State,
-        private val messageOperations: SimpMessageSendingOperations) {
+        private val messageOperations: SimpMessageSendingOperations,
+        private val blockRepository: BlockRepository) {
 
     @MessageMapping("/settings")
     @SendToUser("/queue/messages")
@@ -41,4 +43,10 @@ class SettingController(
         return PlainMessage(ResponseType.INFO, "Settings changed as specified.")
     }
 
+    @MessageMapping("/loadBlockchain")
+    @SendToUser("/queue/messages")
+    fun loadBlockchain(principal: Principal): PlainMessage {
+        blockRepository.loadBlockchain()
+        return PlainMessage(ResponseType.INFO, "Blockchain loaded.")
+    }
 }

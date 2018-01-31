@@ -16,6 +16,7 @@ class BlockRepository(
     private final val COINBASE_ADDRESS = "00000000"
     private final val COINBASE_REWARD = 100
     private final val BLOCKCHAIN_STORE = "blockchain.json"
+    private final val BLOCKCHAIN_RELOAD = "blockchain.json.bak"
 
     private final val blockchain = mutableListOf<JsonNode>()
 
@@ -51,7 +52,7 @@ class BlockRepository(
         blockchain.clear()
 
         val blocks = jacksonObjectMapper().reader()
-                                          .readTree(File(BLOCKCHAIN_STORE).bufferedReader())
+                                          .readTree(File(BLOCKCHAIN_RELOAD).bufferedReader())
 
         blocks.forEach {
             blockchain.add(it)
