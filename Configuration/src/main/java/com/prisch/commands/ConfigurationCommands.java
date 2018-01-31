@@ -30,6 +30,11 @@ public class ConfigurationCommands {
         stompSessionHolder.getStompSession().send("/app/settings", configuration);
     }
 
+    @ShellMethod("Load the Blockchain from the backup.")
+    public void loadBlockchain() {
+        stompSessionHolder.getStompSession().send("/app/loadBlockchain", "");
+    }
+
     private Availability updateConfigurationAvailability() {
         if (!stompSessionHolder.isConnected()) {
             return Availability.unavailable("your client is not connected to the epicoin network (use 'connect' to connect).");
