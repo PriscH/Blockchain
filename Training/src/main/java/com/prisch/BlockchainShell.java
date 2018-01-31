@@ -24,6 +24,7 @@ public class BlockchainShell {
         WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
+        stompClient.setInboundMessageSizeLimit(16 * 1024 * 1024); // 16 MB
         return stompClient;
     }
 
