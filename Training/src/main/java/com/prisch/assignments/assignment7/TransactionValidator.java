@@ -1,12 +1,21 @@
 package com.prisch.assignments.assignment7;
 
+import com.prisch.assignments.assignment1.SignatureVerifier;
+import com.prisch.ignore.transactions.TransactionHasher;
+import com.prisch.reference.services.HashService;
 import com.prisch.reference.transactions.Transaction;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TransactionValidator {
+
+    @Autowired
+    private HashService hashService;
+    @Autowired private TransactionHasher transactionHasher;
+    @Autowired private SignatureVerifier signatureVerifier;
 
     public boolean validate(Transaction transaction) {
         // TODO: [7A]
@@ -18,12 +27,13 @@ public class TransactionValidator {
         // 3) Use the public key to verify the signature against the transaction hash
         // Hint: Have a look at what TransactionCommands is doing, seeing as it is responsible for signing the transaction
 
+        boolean result = true;
+
         // TODO: [7+]
         // Perform the other transaction validations as well. At a high level:
         // 1) Ensure that the input amounts match the output amounts
         // 2) Ensure that the inputs have not been used yet
 
-        boolean result = true;
         if (!result) {
             System.out.println(new AttributedStringBuilder().style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED))
                                                             .append("ERROR: ")

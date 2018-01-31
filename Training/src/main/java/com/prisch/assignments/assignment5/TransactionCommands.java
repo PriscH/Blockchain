@@ -5,9 +5,9 @@ import com.prisch.assignments.assignment6.TransactionRepository;
 import com.prisch.ignore.StompSessionHolder;
 import com.prisch.ignore.blockchain.BlockchainIndex;
 import com.prisch.ignore.shell.ShellLineReader;
+import com.prisch.ignore.transactions.TransactionHasher;
 import com.prisch.ignore.util.Result;
 import com.prisch.reference.Constants;
-import com.prisch.reference.services.HashService;
 import com.prisch.reference.services.KeyService;
 import com.prisch.reference.transactions.Transaction;
 import com.prisch.reference.transactions.TransactionInputBuilder;
@@ -32,12 +32,12 @@ public class TransactionCommands {
     private static final String INTEGER_REGEX = "^-?\\d+$";
 
     @Autowired private KeyService keyService;
-    @Autowired private HashService hashService;
     @Autowired private StompSessionHolder stompSessionHolder;
     @Autowired private ShellLineReader shellLineReader;
     @Autowired private BlockchainIndex blockchainIndex;
     @Autowired private TransactionRepository transactionRepository;
     @Autowired private TransactionInputBuilder transactionInputBuilder;
+    @Autowired private TransactionHasher transactionHasher;
 
     @ShellMethod("Post a transaction to the blockchain")
     public String postTransaction() throws Exception {
@@ -170,7 +170,7 @@ public class TransactionCommands {
 
         List<Transaction.Output> outputs = buildOutputs(address, transferAmount, feeAmount, inputAmount);
 
-        String transactionHash = hash(inputs, outputs, feeAmount);
+        String transactionHash = transactionHasher.hash(inputs, outputs, feeAmount);
         String signature = keyService.sign(transactionHash);
         String publicKey = keyService.readPublicKey();
 
@@ -222,19 +222,5 @@ public class TransactionCommands {
         }
 
         return outputs;
-    }
-
-    private String hash(List<Transaction.Input> inputs, List<Transaction.Output> outputs, int feeAmount) {
-        StringBuilder serializationBuilder = new StringBuilder();
-
-        inputs.forEach(in -> serializationBuilder.append(in.getTransactionHash()));
-
-        outputs.forEach(out -> serializationBuilder.append(out.getAddress())
-                                                   .append(out.getAmount()));
-
-        serializationBuilder.append(feeAmount);
-
-        String serializedTransaction = serializationBuilder.toString();
-        return hashService.hash(serializedTransaction);
     }
 }
